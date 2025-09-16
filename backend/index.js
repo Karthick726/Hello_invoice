@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 
 const infoRouter = require("./routes/InfoRouter");
 const adminRouter = require("./routes/AdminRouter");
+const ProformaRouter = require("./routes/ProformaRouter");
 
 const app = express();
 
@@ -50,6 +51,7 @@ hbs.registerHelper("multiply", function (a, b) {
 
 app.use("/api", infoRouter);
 app.use("/api", adminRouter);
+app.use("/proforma",ProformaRouter);
 
 app.get("/", (req, res) => {
   res.send("hello world");

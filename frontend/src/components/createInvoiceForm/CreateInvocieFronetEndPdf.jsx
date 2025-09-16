@@ -539,7 +539,7 @@ const validateThePdf = () => {
       return false;
     }
 
-    if (showOptionalFields.gst && (!s.gst || s.gst <= 0)) {
+    if (showOptionalFields.gst && (!gstRate|| gstRate <= 0)) {
       alert(`❌ GST must be greater than 0 for service: ${s.selectedService || "Unnamed"}`);
       return false;
     }
@@ -575,13 +575,61 @@ const validateThePdf = () => {
   return true;
 };
 
- const handleSubmit=()=>{
+ const handleSubmit=async()=>{
     if(invoiceType==="proforma"){
         if(!validateThePdf()){
           return false;
         }
 
-        handleDownload()
+        try{
+
+          const response=await AxiosInstance.post("/proforma/post-invoice",
+            {
+              invoiceNumber:invoiceNumber,
+              date:date,
+              customerDetails:{
+                type:customerData.clientType,
+                businessName:customerData.name,
+                phone:customerData.phone,
+                email:customerData.email,
+                gst:customerData.gst,
+                pan:customerData.pan,
+                street:customerData.street,
+                district:customerData.district,
+                state:customerData.state,
+                country:customerData.country,
+                pincode:customerData.pincode
+              },
+              services:services.map((value,index)=>{
+                 return {
+                  serviceName:value.selectedService,
+                  description:value.name,
+                  price:value.price,
+                  gstBoolean:showOptionalFields.gst,
+discountBoolean:showOptionalFields.discount,
+quantityBoolean:showOptionalFields.quantity,
+quantity:value.quantity,
+gst:gstRate,
+discount:value.discount
+
+                 }
+              }),
+              term:term.map((value)=> value.value)
+
+            }
+
+          )
+
+          if(response.status===200){
+            alert("Sucessully profoma invoice data stored")
+             handleDownload()
+          }
+
+        }catch(err){
+          console.log(err)
+        }
+
+       
     }else{
        if(!validateThePdf()){
           return false;
@@ -944,7 +992,10 @@ const validateThePdf = () => {
             <label style={styles.label}>Invoice Type</label>
             <select
               value={invoiceType}
-              onChange={(e) => setInvoiceType(e.target.value)}
+              onChange={(e) =>{
+               setInvoiceNumber(generateProformaNumber()) 
+                setInvoiceType(e.target.value)
+              } }
               style={styles.select}
             >
               <option value="invoice">Invoice</option>
@@ -1581,9 +1632,8 @@ const validateThePdf = () => {
                 <div style={{ color: "#6b7280" }}>
                   <p style={{ margin: "4px 0" }}>
                     <strong>Invoice :</strong> #
-                    {invoiceType === "proforma"
-                      ? generateProformaNumber()
-                      : invoiceNumber}
+                    {
+                       invoiceNumber}
                   </p>
                   <p style={{ margin: "4px 0" }}>
                     <strong>Date:</strong>{" "}

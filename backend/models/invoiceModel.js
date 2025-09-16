@@ -16,7 +16,7 @@ const clientDetailsSchema = new mongoose.Schema({
 
 const serviceSchema = new mongoose.Schema({
   serviceName: String,
-  description: [String],
+  description: String,
   price: Number,
   discountBoolean: Boolean,
   gstBoolean: Boolean,
@@ -29,11 +29,10 @@ const serviceSchema = new mongoose.Schema({
 
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: String,
-  date: Date,
-  dueDate: Date,
+  date: String,
   clientDetails: clientDetailsSchema,
   services: [serviceSchema],
   terms: [String],
 }, { timestamps: true });
 
-module.exports = mongoose.model('Invoice', invoiceSchema);
+module.exports = mongoose.model('proformaInvoice', invoiceSchema);
