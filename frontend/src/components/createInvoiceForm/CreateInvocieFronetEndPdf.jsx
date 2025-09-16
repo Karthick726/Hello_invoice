@@ -37,57 +37,6 @@ const CreateInvoiceFronetEndPdf = () => {
     pincode: "",
   });
 
-  const handleTermChange = (index, e) => {
-    const { value } = e.target;
-    const newTerm = [...term];
-    newTerm[index].value = value;
-
-    if (value.length < 10) {
-      newTerm[index].error =
-        "Terms & condition must be at least 10 characters.";
-    } else {
-      newTerm[index].error = "";
-    }
-
-    setTerm(newTerm);
-  };
-
-  const handleTermBlur = (index, e) => {
-    const { value } = e.target;
-    const newTerm = [...term];
-    if (value === "") {
-      newTerm[index].error = "Terms & condition is required.";
-    }
-    setTerm(newTerm);
-  };
-
-  const addTermField = () => {
-    if (term.length >= 10) {
-      alert("Maximum of 10 Terms & condition can be added.");
-      return;
-    }
-
-    const lastField = term[term.length - 1];
-    if (lastField.value === "") {
-      alert("Complete the current field.");
-    } else if (lastField.error) {
-      alert("Fix the error in Terms & condition");
-    } else {
-      setTerm([...term, { value: "", error: "" }]);
-    }
-  };
-
-  const deleteTermField = (index) => {
-    if (term.length <= 1) {
-      alert("At least one Terms & condition must remain.");
-      return;
-    }
-
-    const newTerm = [...term];
-    newTerm.splice(index, 1);
-    setTerm(newTerm);
-  };
-
   const [customerData, setCustomerData] = useState({
     clientType: "individual",
     name: "",
@@ -113,133 +62,8 @@ const CreateInvoiceFronetEndPdf = () => {
     },
   ]);
 
-  const invoiceRef = useRef();
 
-  const addService = () => {
-    const newService = {
-      id: Date.now(),
-      name: "",
-      price: 0,
-      quantity: 1,
-      discount: 0,
-      paid: 0,
-    };
-    setServices([...services, newService]);
-  };
-
-  const removeService = (id) => {
-    setServices(services.filter((service) => service.id !== id));
-  };
-
-  const updateService = (id, field, value) => {
-    setServices(
-      services.map((service) =>
-        service.id === id ? { ...service, [field]: value } : service
-      )
-    );
-  };
-
-  const updateCustomer = (field, value) => {
-    setCustomerData({ ...customerData, [field]: value });
-  };
-
-  const calculateServiceTotal = (service) => {
-    const baseAmount = service.price * service.quantity;
-    const discountAmount = showOptionalFields.discount
-      ? (baseAmount * service.discount) / 100
-      : 0;
-    return baseAmount - discountAmount;
-  };
-
-  const calculateTotals = () => {
-    const subtotal = services.reduce(
-      (sum, service) => sum + calculateServiceTotal(service),
-      0
-    );
-    const cgst = showOptionalFields.gst ? (subtotal * gstRate) / 200 : 0; // Half of GST rate
-    const sgst = showOptionalFields.gst ? cgst : 0; // Same as CGST
-    const total = subtotal + cgst + sgst;
-    const totalGst = cgst + sgst;
-    const totalPaid = services.reduce(
-      (sum, service) => sum + parseFloat(service.paid || 0),
-      0
-    );
-    const balance = total - totalPaid;
-
-    return { subtotal, cgst, sgst, total, totalPaid, balance, totalGst };
-  };
-
-  const generateProformaNumber = () => {
-    return `HTM-${Date.now().toString().slice(-6)}`;
-  };
-
-  const getCurrentDate = () => {
-    return new Date().toLocaleDateString("en-IN");
-  };
-
-  const totals = calculateTotals();
-  function numberToWords(num) {
-    const a = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
-    ];
-    const b = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
-    ];
-
-    if (num === 0) return "Zero";
-    if (num < 20) return a[num];
-    if (num < 100)
-      return b[Math.floor(num / 10)] + (num % 10 ? " " + a[num % 10] : "");
-    if (num < 1000)
-      return (
-        a[Math.floor(num / 100)] +
-        " Hundred" +
-        (num % 100 ? " " + numberToWords(num % 100) : "")
-      );
-    if (num < 100000)
-      return (
-        numberToWords(Math.floor(num / 1000)) +
-        " Thousand" +
-        (num % 1000 ? " " + numberToWords(num % 1000) : "")
-      );
-    if (num < 10000000)
-      return (
-        numberToWords(Math.floor(num / 100000)) +
-        " Lakh" +
-        (num % 100000 ? " " + numberToWords(num % 100000) : "")
-      );
-    return num.toString();
-  }
-
-  const styles = {
+    const styles = {
     container: {
       margin: "0 auto",
       padding: "20px",
@@ -431,6 +255,188 @@ const CreateInvoiceFronetEndPdf = () => {
       padding: "16px",
     },
   };
+
+  const handleTermChange = (index, e) => {
+    const { value } = e.target;
+    const newTerm = [...term];
+    newTerm[index].value = value;
+
+    if (value.length < 10) {
+      newTerm[index].error =
+        "Terms & condition must be at least 10 characters.";
+    } else {
+      newTerm[index].error = "";
+    }
+
+    setTerm(newTerm);
+  };
+
+  const handleTermBlur = (index, e) => {
+    const { value } = e.target;
+    const newTerm = [...term];
+    if (value === "") {
+      newTerm[index].error = "Terms & condition is required.";
+    }
+    setTerm(newTerm);
+  };
+
+  const addTermField = () => {
+    if (term.length >= 10) {
+      alert("Maximum of 10 Terms & condition can be added.");
+      return;
+    }
+
+    const lastField = term[term.length - 1];
+    if (lastField.value === "") {
+      alert("Complete the current field.");
+    } else if (lastField.error) {
+      alert("Fix the error in Terms & condition");
+    } else {
+      setTerm([...term, { value: "", error: "" }]);
+    }
+  };
+
+  const deleteTermField = (index) => {
+    if (term.length <= 1) {
+      alert("At least one Terms & condition must remain.");
+      return;
+    }
+
+    const newTerm = [...term];
+    newTerm.splice(index, 1);
+    setTerm(newTerm);
+  };
+
+  
+
+  const invoiceRef = useRef();
+
+  const addService = () => {
+    const newService = {
+      id: Date.now(),
+      name: "",
+      price: 0,
+      quantity: 1,
+      discount: 0,
+      paid: 0,
+    };
+    setServices([...services, newService]);
+  };
+
+  const removeService = (id) => {
+    setServices(services.filter((service) => service.id !== id));
+  };
+
+  const updateService = (id, field, value) => {
+    setServices(
+      services.map((service) =>
+        service.id === id ? { ...service, [field]: value } : service
+      )
+    );
+  };
+
+  const updateCustomer = (field, value) => {
+    setCustomerData({ ...customerData, [field]: value });
+  };
+
+  const calculateServiceTotal = (service) => {
+    const quantityForCal=showOptionalFields.quantity ? service.quantity : 1
+    const baseAmount = service.price * quantityForCal ;
+    const discountAmount = showOptionalFields.discount
+      ? (baseAmount * service.discount) / 100
+      : 0;
+    return baseAmount - discountAmount;
+  };
+
+   console.log(services)
+
+  const calculateTotals = () => {
+    const subtotal = services.reduce(
+      (sum, service) => sum + calculateServiceTotal(service),
+      0
+    );
+    const cgst = showOptionalFields.gst ? (subtotal * gstRate) / 200 : 0; // Half of GST rate
+    const sgst = showOptionalFields.gst ? cgst : 0; // Same as CGST
+    const total = subtotal + cgst + sgst;
+    const totalGst = cgst + sgst;
+    const totalPaid = services.reduce(
+      (sum, service) => sum + parseFloat(service.paid || 0),
+      0
+    );
+    const balance = total - totalPaid;
+
+    return { subtotal, cgst, sgst, total, totalPaid, balance, totalGst };
+  };
+
+  const generateProformaNumber = () => {
+    return `HTM-${Date.now().toString().slice(-6)}`;
+  };
+
+
+
+  const totals = calculateTotals();
+  function numberToWords(num) {
+    const a = [
+      "",
+      "One",
+      "Two",
+      "Three",
+      "Four",
+      "Five",
+      "Six",
+      "Seven",
+      "Eight",
+      "Nine",
+      "Ten",
+      "Eleven",
+      "Twelve",
+      "Thirteen",
+      "Fourteen",
+      "Fifteen",
+      "Sixteen",
+      "Seventeen",
+      "Eighteen",
+      "Nineteen",
+    ];
+    const b = [
+      "",
+      "",
+      "Twenty",
+      "Thirty",
+      "Forty",
+      "Fifty",
+      "Sixty",
+      "Seventy",
+      "Eighty",
+      "Ninety",
+    ];
+
+    if (num === 0) return "Zero";
+    if (num < 20) return a[num];
+    if (num < 100)
+      return b[Math.floor(num / 10)] + (num % 10 ? " " + a[num % 10] : "");
+    if (num < 1000)
+      return (
+        a[Math.floor(num / 100)] +
+        " Hundred" +
+        (num % 100 ? " " + numberToWords(num % 100) : "")
+      );
+    if (num < 100000)
+      return (
+        numberToWords(Math.floor(num / 1000)) +
+        " Thousand" +
+        (num % 1000 ? " " + numberToWords(num % 1000) : "")
+      );
+    if (num < 10000000)
+      return (
+        numberToWords(Math.floor(num / 100000)) +
+        " Lakh" +
+        (num % 100000 ? " " + numberToWords(num % 100000) : "")
+      );
+    return num.toString();
+  }
+
+
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -1049,8 +1055,9 @@ if (fieldName === "pan") {
                 onChange={(e) =>
                   setShowOptionalFields({
                     ...showOptionalFields,
-                    quantity: e.target.checked,
+                   quantity: e.target.checked,
                   })
+                  
                 }
               />
               Quantity
@@ -1144,6 +1151,23 @@ if (fieldName === "pan") {
                         }
                         style={styles.tableInput}
                         placeholder="0"
+                                onKeyDown={(e) => {
+            const allowedKeys = [
+              "Backspace",
+              "ArrowLeft",
+              "ArrowRight",
+              "Delete",
+              "Tab",
+            ];
+            const allowedCharPattern = /^[0-9]$/;
+
+            if (
+              !allowedKeys.includes(e.key) &&
+              !allowedCharPattern.test(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
                       />
                     </td>
                     {showOptionalFields.quantity && (
@@ -1151,14 +1175,33 @@ if (fieldName === "pan") {
                         <input
                           type="number"
                           value={service.quantity}
-                          onChange={(e) =>
-                            updateService(
-                              service.id,
-                              "quantity",
-                              parseFloat(e.target.value) || 1
-                            )
-                          }
+                         onChange={(e) =>
+  updateService(
+    service.id,
+    "quantity",
+    showOptionalFields.quantity === true
+      ? parseFloat(e.target.value) || 1
+      : 0
+  )
+}
                           style={styles.tableInput}
+                                  onKeyDown={(e) => {
+            const allowedKeys = [
+              "Backspace",
+              "ArrowLeft",
+              "ArrowRight",
+              "Delete",
+              "Tab",
+            ];
+            const allowedCharPattern = /^[0-9]$/;
+
+            if (
+              !allowedKeys.includes(e.key) &&
+              !allowedCharPattern.test(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
                           min="1"
                         />
                       </td>
@@ -1168,6 +1211,7 @@ if (fieldName === "pan") {
                         <input
                           type="text"
                           value={service.discount}
+                               maxLength={2}
                           onChange={(e) =>
                             updateService(
                               service.id,
@@ -1179,6 +1223,23 @@ if (fieldName === "pan") {
                           placeholder="0"
                           min="0"
                           max="100"
+                                  onKeyDown={(e) => {
+            const allowedKeys = [
+              "Backspace",
+              "ArrowLeft",
+              "ArrowRight",
+              "Delete",
+              "Tab",
+            ];
+            const allowedCharPattern = /^[0-9]$/;
+
+            if (
+              !allowedKeys.includes(e.key) &&
+              !allowedCharPattern.test(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
                         />
                       </td>
                     )}
@@ -1187,10 +1248,28 @@ if (fieldName === "pan") {
                         <input
                           type="text"
                           value={gstRate}
+                          maxLength={2}
                           onChange={(e) =>
                             setGstRate(parseFloat(e.target.value) || 0)
                           }
                           style={styles.input}
+                                  onKeyDown={(e) => {
+            const allowedKeys = [
+              "Backspace",
+              "ArrowLeft",
+              "ArrowRight",
+              "Delete",
+              "Tab",
+            ];
+            const allowedCharPattern = /^[0-9]$/;
+
+            if (
+              !allowedKeys.includes(e.key) &&
+              !allowedCharPattern.test(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
                         />
                       </td>
                     )}
@@ -1211,6 +1290,23 @@ if (fieldName === "pan") {
                           }
                           style={styles.tableInput}
                           placeholder="0"
+                                  onKeyDown={(e) => {
+            const allowedKeys = [
+              "Backspace",
+              "ArrowLeft",
+              "ArrowRight",
+              "Delete",
+              "Tab",
+            ];
+            const allowedCharPattern = /^[0-9]$/;
+
+            if (
+              !allowedKeys.includes(e.key) &&
+              !allowedCharPattern.test(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
                         />
                       </td>
                     )}
