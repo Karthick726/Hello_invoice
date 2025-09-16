@@ -10,7 +10,7 @@ import { FormLabel } from "@mui/material";
 
 const CreateInvoiceFronetEndPdf = () => {
   const [servicess, setServicess] = useState([]);
-  const [selectedService, setSelectedService] = useState("");
+ // const [, setSelectedService] = useState("");
   const [term, setTerm] = useState([{ value: "", error: "" }]);
   const [info, setInfo] = useState([]);
   const [invoiceType, setInvoiceType] = useState("invoice");
@@ -35,7 +35,14 @@ const CreateInvoiceFronetEndPdf = () => {
     state: "",
     country: "",
     pincode: "",
+   
+
   });
+
+    // Error states for validation
+  const [priceError, setPriceError] = useState({});
+  const [discountError, setDiscountError] = useState({});
+  const [gstError, setGstError] = useState('');
 
   const [customerData, setCustomerData] = useState({
     clientType: "individual",
@@ -55,6 +62,7 @@ const CreateInvoiceFronetEndPdf = () => {
     {
       id: 1,
       name: "",
+      selectedService:"",
       price: 0,
       quantity: 1,
       discount: 0,
@@ -62,8 +70,7 @@ const CreateInvoiceFronetEndPdf = () => {
     },
   ]);
 
-
-    const styles = {
+  const styles = {
     container: {
       margin: "0 auto",
       padding: "20px",
@@ -307,13 +314,12 @@ const CreateInvoiceFronetEndPdf = () => {
     setTerm(newTerm);
   };
 
-  
-
   const invoiceRef = useRef();
 
   const addService = () => {
     const newService = {
       id: Date.now(),
+      selectedService:"",
       name: "",
       price: 0,
       quantity: 1,
@@ -339,42 +345,40 @@ const CreateInvoiceFronetEndPdf = () => {
     setCustomerData({ ...customerData, [field]: value });
   };
 
-  const calculateServiceTotal = (service) => {
-    const quantityForCal=showOptionalFields.quantity ? service.quantity : 1
-    const baseAmount = service.price * quantityForCal ;
-    const discountAmount = showOptionalFields.discount
-      ? (baseAmount * service.discount) / 100
-      : 0;
-    return baseAmount - discountAmount;
-  };
+  // const calculateServiceTotal = (service) => {
+  //   const quantityForCal = showOptionalFields.quantity ? service.quantity : 1;
+  //   const baseAmount = service.price * quantityForCal;
+  //   const discountAmount = showOptionalFields.discount
+  //     ? (baseAmount * service.discount) / 100
+  //     : 0;
+  //   return baseAmount - discountAmount;
+  // };
 
-   console.log(services)
+  // console.log(services);
 
-  const calculateTotals = () => {
-    const subtotal = services.reduce(
-      (sum, service) => sum + calculateServiceTotal(service),
-      0
-    );
-    const cgst = showOptionalFields.gst ? (subtotal * gstRate) / 200 : 0; // Half of GST rate
-    const sgst = showOptionalFields.gst ? cgst : 0; // Same as CGST
-    const total = subtotal + cgst + sgst;
-    const totalGst = cgst + sgst;
-    const totalPaid = services.reduce(
-      (sum, service) => sum + parseFloat(service.paid || 0),
-      0
-    );
-    const balance = total - totalPaid;
+  // const calculateTotals = () => {
+  //   const subtotal = services.reduce(
+  //     (sum, service) => sum + calculateServiceTotal(service),
+  //     0
+  //   );
+  //   const cgst = showOptionalFields.gst ? (subtotal * gstRate) / 200 : 0; // Half of GST rate
+  //   const sgst = showOptionalFields.gst ? cgst : 0; // Same as CGST
+  //   const total = subtotal + cgst + sgst;
+  //   const totalGst = cgst + sgst;
+  //   const totalPaid = services.reduce(
+  //     (sum, service) => sum + parseFloat(service.paid || 0),
+  //     0
+  //   );
+  //   const balance = total - totalPaid;
 
-    return { subtotal, cgst, sgst, total, totalPaid, balance, totalGst };
-  };
+  //   return { subtotal, cgst, sgst, total, totalPaid, balance, totalGst };
+  // };
 
   const generateProformaNumber = () => {
     return `HTM-${Date.now().toString().slice(-6)}`;
   };
 
-
-
-  const totals = calculateTotals();
+  // const totals = calculateTotals();
   function numberToWords(num) {
     const a = [
       "",
@@ -436,8 +440,6 @@ const CreateInvoiceFronetEndPdf = () => {
     return num.toString();
   }
 
-
-
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -462,7 +464,137 @@ const CreateInvoiceFronetEndPdf = () => {
     fetchServices();
   }, []);
 
+  console.log(date)
+
+const validateThePdf = () => {
+
+  if(date===undefined){
+     alert(`❌ Date is required`);
+      return false;
+  }
+  // ✅ Validate customerData
+  const requiredFields = [
+    "clientType",
+    "name",
+    "phone",
+    "street",
+    "district",
+    "state",
+    "country",
+    "pincode",
+  ];
+
+  for (let field of requiredFields) {
+    if (!customerData[field] || customerData[field].toString().trim() === "") {
+      alert(`❌ ${field} is required`);
+      return false;
+    }
+  }
+
+  // ✅ Optional email validation (if provided)
+  if (customerData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerData.email)) {
+    alert("❌ Invalid email address");
+    return false;
+  }
+
+  // ✅ Optional GST validation (if provided)
+  if (
+    customerData.gst &&
+    !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+      customerData.gst
+    )
+  ) {
+    alert("❌ Invalid GST number");
+    return false;
+  }
+
+  // ✅ Optional PAN validation (if provided)
+  if (
+    customerData.pan &&
+    !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(customerData.pan)
+  ) {
+    alert("❌ Invalid PAN number");
+    return false;
+  }
+
+  // ✅ Validate services
+  if (!services || services.length === 0) {
+    alert("❌ At least one service is required");
+    return false;
+  }
+
+  for (let s of services) {
+    if(!s.selectedService){
+      alert("❌ Service name is required");
+      return false;
+    }
+    if (!s.name || s.name.trim() === "") {
+      alert("❌ Service Description is required");
+      return false;
+    }
+
+
+    if (s.price <= 0) {
+      alert(`❌ Price must be greater than 0 for service: ${s.selectedService || "Unnamed"}`);
+      return false;
+    }
+
+    if (showOptionalFields.gst && (!s.gst || s.gst <= 0)) {
+      alert(`❌ GST must be greater than 0 for service: ${s.selectedService || "Unnamed"}`);
+      return false;
+    }
+
+    if (showOptionalFields.quantity && (!s.quantity || s.quantity <= 0)) {
+      alert(`❌ Quantity must be greater than 0 for service: ${s.selectedService || "Unnamed"}`);
+      return false;
+    }
+
+    if (showOptionalFields.discount && (!s.discount || s.discount <= 0)) {
+      alert(`❌ Discount must be greater than 0 for service: ${s.selectedService || "Unnamed"}`);
+      return false;
+    }
+  }
+
+  if (!term || term.length === 0) {
+    alert("❌ At least one term is required");
+    return false;
+  }
+
+  for(let t of term){
+    if(t.value ===""){
+       alert("❌ At term is required");
+          return false;
+    }
+
+    if(t.error !==""){
+      alert("❌ check the term error");
+          return false;
+    }
+  }
+
+  return true;
+};
+
+ const handleSubmit=()=>{
+    if(invoiceType==="proforma"){
+        if(!validateThePdf()){
+          return false;
+        }
+
+        handleDownload()
+    }else{
+       if(!validateThePdf()){
+          return false;
+        }
+
+          handleDownload()
+    }
+
+ }
+
   const handleDownload = () => {
+
+
     const element = invoiceRef.current;
 
     html2canvas(element).then((canvas) => {
@@ -498,15 +630,20 @@ const CreateInvoiceFronetEndPdf = () => {
   const errMessage = (fieldName, fieldValue) => {
     let message = "";
 
-      if (fieldName) {
+    if (fieldName) {
       if (fieldValue === "") {
         message = "";
       }
     }
 
     if (fieldName === "name") {
-      if (fieldValue.length < 3) {
-        message = `Business Name is Invalid`;
+      const alphaRegex =  /^[A-Za-z0-9\s.,&_#/-]+$/;
+     if(fieldValue===""){
+      message=""
+    } else   if (!alphaRegex.test(fieldValue)) {
+        message = "Business Name must contain only alphabets";
+      } else if (fieldValue.length < 3) {
+        message = "Business Name is Invalid";
       } else {
         message = "";
       }
@@ -515,95 +652,110 @@ const CreateInvoiceFronetEndPdf = () => {
     if (fieldName === "email") {
       const emailRegex =
         /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]{2,}@[a-zA-Z-]+\.[a-zA-Z-]{2,}$/;
-      if (!emailRegex.test(fieldValue)) {
-        message = `Email is Invalid`;
+    if(fieldValue===""){
+      message=""
+    } else if (!emailRegex.test(fieldValue)) {
+        message = "Email is Invalid";
       } else {
         message = "";
       }
     }
 
-  if (fieldName === "phone") {
-      // Remove non-numeric characters for validation
+    if (fieldName === "phone") {
+      const numericRegex = /^[0-9]+$/;
       const numericValue = fieldValue.replace(/[^0-9]/g, "");
-
-      if (numericValue.length < 10) {
-        message = "Phone number needs 10 characters";
+      if(fieldValue===""){
+      message=""
+    } else  if (!numericRegex.test(fieldValue)) {
+        message = "Phone must contain only numbers";
+      } else if (numericValue.length < 10) {
+        message = "Phone number needs 10 digits";
       } else if (numericValue.length > 10) {
         message = "Phone number is too long";
       } else {
         const prefix = parseInt(numericValue.slice(0, 2), 10);
         if (!(prefix >= 63 && prefix <= 99)) {
           message = "Invalid Phone Number";
-        } else {
-          message = "";
         }
       }
     }
 
-      if (fieldName === "street") {
-      if (fieldValue.length < 3) {
-        message = "street is invalid";
+    if (["country", "district", "state"].includes(fieldName)) {
+      const alphaRegex = /^[A-Za-z\s]+$/;
+      if(fieldValue===""){
+      message=""
+    } else  if (!alphaRegex.test(fieldValue)) {
+        message = `${capitalizeFirstLetter(
+          fieldName
+        )} must contain only alphabets`;
+      } else if (fieldValue.length < 3) {
+        message = `${capitalizeFirstLetter(fieldName)} is invalid`;
       } else {
         message = "";
       }
     }
 
-      if (fieldName === "district") {
-      if (fieldValue.length < 3) {
-        message = "District is invalid";
+    if (fieldName === "street") {
+      const streetRegex = /^[A-Za-z0-9\s.,#/-]+$/;
+     if(fieldValue===""){
+      message=""
+    } else   if (!streetRegex.test(fieldValue)) {
+        message = "Street can only contain letters, numbers, and symbols";
+      } else if (fieldValue.length < 3) {
+        message = "Street is invalid";
       } else {
         message = "";
       }
     }
 
-    if (fieldName === "state") {
-      if (fieldValue.length < 3) {
-        message = "State is invalid";
-      } else {
-        message = "";
-      }
-    }
-
-
-     if (fieldName === "country") {
-      if (fieldValue.length < 3) {
-        message = "Country is invalid";
-      } else {
-        message = "";
-      }
-    }
     if (fieldName === "pincode") {
-      if (fieldValue.length < 6) {
-        message = "Pincode must need 6 number";
+      const numericRegex = /^[0-9]+$/;
+      if(fieldValue===""){
+      message=""
+    } else  if (!numericRegex.test(fieldValue)) {
+        message = "Pincode must contain only numbers";
+      } else if (fieldValue.length < 6) {
+        message = "Pincode must need 6 digits";
       } else if (fieldValue.length > 6) {
-        message = "Pincode much larger";
+        message = "Pincode is too long";
       } else {
         message = "";
       }
     }
-    if (fieldName === "gst") {
-  if (fieldValue.length < 15) {
-    message = "GST number must be 15 characters";
-  } else if (fieldValue.length > 15) {
-    message = "GST number is too long";
-  } else {
-    message = "";
-  }
-}
 
-if (fieldName === "pan") {
-  if (fieldValue.length < 10) {
-    message = "PAN number must be 10 characters";
-  } else if (fieldValue.length > 10) {
-    message = "PAN number is too long";
-  } else {
-    message = "";
-  }
-}
-    return {
-      message: message,
-    };
+    if (fieldName === "gst") {
+      const alnumRegex = /^[A-Za-z0-9]+$/;
+     if(fieldValue===""){
+      message=""
+    } else   if (!alnumRegex.test(fieldValue)) {
+        message = "GST number must contain only alphabets and numbers";
+      } else if (fieldValue.length < 15) {
+        message = "GST number must be 15 characters";
+      } else if (fieldValue.length > 15) {
+        message = "GST number is too long";
+      } else {
+        message = "";
+      }
+    }
+
+    if (fieldName === "pan") {
+      const alnumRegex = /^[A-Za-z0-9]+$/;
+      if(fieldValue===""){
+      message=""
+    } else  if (!alnumRegex.test(fieldValue)) {
+        message = "PAN number must contain only alphabets and numbers";
+      } else if (fieldValue.length < 10) {
+        message = "PAN number must be 10 characters";
+      } else if (fieldValue.length > 10) {
+        message = "PAN number is too long";
+      } else {
+        message = "";
+      }
+    }
+
+    return { message: message };
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -623,26 +775,165 @@ if (fieldName === "pan") {
     });
   };
 
-
   function capitalizeFirstLetter(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
 
-    const handleBlur = (e) => {
+  const handleBlur = (e) => {
     const { name, value } = e.target;
     if (value === "") {
       setError((prevState) => ({
         ...prevState,
-        [name]: `${capitalizeFirstLetter(name)} field is required`
+        [name]: `${capitalizeFirstLetter(name)} field is required`,
       }));
     }
   };
 
-    const handleDown = (e) => {
+  const handleDown = (e) => {
     if (e.key === " " && e.target.selectionStart === 0) {
       e.preventDefault();
     }
   };
+
+
+   // Calculate individual service total
+  const calculateServiceTotal = (service) => {
+    const quantityForCal = showOptionalFields.quantity ? service.quantity : 1;
+    const baseAmount = service.price * quantityForCal;
+    const discountAmount = showOptionalFields.discount
+      ? (baseAmount * service.discount) / 100
+      : 0;
+    const subtotal = baseAmount - discountAmount;
+    
+    // Calculate GST for this service
+    const gstAmount = showOptionalFields.gst ? (subtotal * gstRate) / 100 : 0;
+    const totalWithGst = subtotal + gstAmount;
+    
+    return {
+      subtotal,
+      gstAmount,
+      totalWithGst,
+      baseAmount,
+      discountAmount
+    };
+  };
+
+  // Calculate overall totals
+  const calculateOverallTotals = () => {
+    const serviceCalculations = services.map(service => calculateServiceTotal(service));
+    
+    const subtotal = serviceCalculations.reduce((sum, calc) => sum + calc.subtotal, 0);
+    const totalGstAmount = serviceCalculations.reduce((sum, calc) => sum + calc.gstAmount, 0);
+    const cgst = totalGstAmount / 2;
+    const sgst = totalGstAmount / 2;
+    const total = serviceCalculations.reduce((sum, calc) => sum + calc.totalWithGst, 0);
+    const totalPaid = services.reduce((sum, service) => sum + parseFloat(service.paid || 0), 0);
+    const balance = total - totalPaid;
+
+    return { 
+      subtotal, 
+      cgst, 
+      sgst, 
+      total, 
+      totalPaid, 
+      balance, 
+      totalGst: totalGstAmount,
+      serviceCalculations 
+    };
+  };
+
+  // Validate paid amount for a service
+  const validatePaidAmount = (service) => {
+    const serviceCalc = calculateServiceTotal(service);
+    const paidAmount = parseFloat(service.paid || 0);
+    
+    if (paidAmount > serviceCalc.totalWithGst) {
+      return { isValid: false, message: `Paid amount cannot exceed ₹${serviceCalc.totalWithGst.toFixed(2)}` };
+    }
+    if (paidAmount < 0) {
+      return { isValid: false, message: 'Paid amount cannot be negative' };
+    }
+    return { isValid: true, message: '' };
+  };
+
+
+    // Validation helper function
+ const validateNumberInput = (value) => {
+  // Allow empty string
+ 
+  
+   const numericRegex = /^[0-9]+$/;
+      const numericValue = value.replace(/[^0-9]/g, "");
+
+     if(value===""){
+    return true
+    } else  if (!numericRegex.test(value)) {
+        return false
+      } else{
+        return true
+      }
+  
+  return true;
+};
+
+  // Handle price change with validation
+  const handlePriceChange = (e, serviceId) => {
+    const value = e.target.value;
+ console.log(value)
+    console.log(validateNumberInput(value))
+    if (validateNumberInput(value)) {
+      updateService(serviceId, 'price', parseFloat(value) || 0);
+      setPriceError(prev => ({ ...prev, [serviceId]: '' }));
+    } else {
+      setPriceError(prev => ({
+        ...prev,
+        [serviceId]: 'Invalid price: only numbers allowed, no leading zeros.'
+      }));
+    }
+  };
+
+  // Handle discount change with validation
+  const handleDiscountChange = (e, serviceId) => {
+    const value = e.target.value;
+    console.log(value)
+    console.log(validateNumberInput(value))
+    if (validateNumberInput(value)) {
+      const numValue = parseFloat(value) || 0;
+      if (numValue < 100) {
+        updateService(serviceId, 'discount', numValue);
+        setDiscountError(prev => ({ ...prev, [serviceId]: '' }));
+      } else {
+        setDiscountError(prev => ({
+          ...prev,
+          [serviceId]: 'Discount cannot exceed 100%'
+        }));
+      }
+    } else {
+      setDiscountError(prev => ({
+        ...prev,
+        [serviceId]: 'Invalid discount: only numbers allowed, no leading zeros.'
+      }));
+    }
+  };
+
+  // Handle GST rate change with validation
+  const handleGstRateChange = (e) => {
+    const value = e.target.value;
+
+    if (validateNumberInput(value)) {
+      const numValue = parseFloat(value) || 0;
+      if (numValue <= 100) {
+        setGstRate(numValue);
+        setGstError('');
+      } else {
+        setGstError('GST rate cannot exceed 100%');
+      }
+    } else {
+      setGstError('Invalid GST rate: only numbers allowed, no leading zeros.');
+    }
+  };
+
+  const totals = calculateOverallTotals();
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -698,12 +989,14 @@ if (fieldName === "pan") {
               value={customerData.clientType}
               onChange={(e) => updateCustomer("clientType", e.target.value)}
               style={styles.select}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
             >
               <option value="individual">Individual</option>
               <option value="company">Company</option>
             </select>
-             {error.clientType && <p className="error-message">{error.clientType}</p>}
+            {error.clientType && (
+              <p className="error-message">{error.clientType}</p>
+            )}
           </div>
 
           <div style={styles.formGroup}>
@@ -715,32 +1008,10 @@ if (fieldName === "pan") {
               value={customerData.name}
               onChange={handleChange}
               style={styles.input}
-                onBlur={handleBlur}
-         onKeyDown={(e) => {
-                                      handleDown(e);
-                                      const allowedKeys = [
-                                        "Backspace",
-                                        "ArrowLeft",
-                                        "Space",
-                                        "ArrowRight",
-                                        "Delete",
-                                        "Tab",
-                                      ];
-                                      const allowedCharPattern = /^[a-zA-Z/]$/;
-                                      const isSpaceKey = e.key === " ";
-  
-                                      // Check if the pressed key is not allowed
-                                      if (
-                                        !allowedKeys.includes(e.key) &&
-                                        !allowedCharPattern.test(e.key) &&
-                                        !isSpaceKey
-                                      ) {
-                                        e.preventDefault(); // Prevent the default action of the disallowed key
-                                      }
-                                    }}
-      
+              onBlur={handleBlur}
+              maxLength={20}
             />
-             {error.name && <p className="error-message">{error.name}</p>}
+            {error.name && <p className="error-message">{error.name}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -750,25 +1021,13 @@ if (fieldName === "pan") {
               placeholder="Phone"
               name="phone"
               value={customerData.phone}
-              onChange={handleChange} onBlur={handleBlur}
+              onChange={handleChange}
+              onBlur={handleBlur}
               style={styles.input}
-               onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
-
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+              maxLength={10}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
 
             {error.phone && <p className="error-message">{error.phone}</p>}
@@ -784,25 +1043,10 @@ if (fieldName === "pan") {
               onChange={handleChange}
               style={styles.input}
               onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-                "space",
-            ];
-            const allowedCharPattern = /^[0-9a-z._@-]$/;
-
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                handleDown(e);
+              }}
             />
-              {error.email && <p className="error-message">{error.email}</p>}
+            {error.email && <p className="error-message">{error.email}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -814,9 +1058,12 @@ if (fieldName === "pan") {
               value={customerData.gst}
               onChange={handleChange}
               style={styles.input}
-  
+              maxLength={15}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.gst && <p className="error-message">{error.gst}</p>}
+            {error.gst && <p className="error-message">{error.gst}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -825,12 +1072,15 @@ if (fieldName === "pan") {
               type="text"
               placeholder="PAN"
               name="pan"
+              maxLength={10}
               value={customerData.pan}
               onChange={handleChange}
               style={styles.input}
-     
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.pan && <p className="error-message">{error.pan}</p>}
+            {error.pan && <p className="error-message">{error.pan}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -839,35 +1089,16 @@ if (fieldName === "pan") {
               type="text"
               placeholder="Street Address"
               name="street"
+              maxLength={30}
               value={customerData.street}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
               onChange={handleChange}
               style={styles.input}
-                              onKeyDown={(e) => {
-                  handleDown(e);
-                  const allowedKeys = [
-                    "Backspace",
-                    "ArrowLeft",
-                    "ArrowRight",
-                    "Delete",
-                    "Tab",
-                    "space",
-                  ];
-                  const allowedCharPattern = /^[0-9A-Za-z/':;.,()-]$/;
-                  const isSpaceKey = e.key === " ";
-
-                  // Check if the pressed key is not allowed
-                  if (
-                    !allowedKeys.includes(e.key) &&
-                    !allowedCharPattern.test(e.key) &&
-                    !isSpaceKey
-                  ) {
-                    e.preventDefault(); // Prevent the default action of the disallowed key
-                  }
-                }}
-
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.street && <p className="error-message">{error.street}</p>}
+            {error.street && <p className="error-message">{error.street}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -876,34 +1107,18 @@ if (fieldName === "pan") {
               type="text"
               placeholder="District"
               name="district"
+              maxLength={20}
               value={customerData.district}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
               onChange={handleChange}
               style={styles.input}
-               onKeyDown={(e) => {
-                                      handleDown(e);
-                                      const allowedKeys = [
-                                        "Backspace",
-                                        "ArrowLeft",
-                                        "Space",
-                                        "ArrowRight",
-                                        "Delete",
-                                        "Tab",
-                                      ];
-                                      const allowedCharPattern = /^[a-zA-Z/]$/;
-                                      const isSpaceKey = e.key === " ";
-  
-                                      // Check if the pressed key is not allowed
-                                      if (
-                                        !allowedKeys.includes(e.key) &&
-                                        !allowedCharPattern.test(e.key) &&
-                                        !isSpaceKey
-                                      ) {
-                                        e.preventDefault(); // Prevent the default action of the disallowed key
-                                      }
-                                    }}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.district && <p className="error-message">{error.district}</p>}
+            {error.district && (
+              <p className="error-message">{error.district}</p>
+            )}
           </div>
 
           <div style={styles.formGroup}>
@@ -912,34 +1127,16 @@ if (fieldName === "pan") {
               type="text"
               placeholder="State"
               name="state"
+              maxLength={20}
               value={customerData.state}
               onChange={handleChange}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
               style={styles.input}
-               onKeyDown={(e) => {
-                                      handleDown(e);
-                                      const allowedKeys = [
-                                        "Backspace",
-                                        "ArrowLeft",
-                                        "Space",
-                                        "ArrowRight",
-                                        "Delete",
-                                        "Tab",
-                                      ];
-                                      const allowedCharPattern = /^[a-zA-Z/]$/;
-                                      const isSpaceKey = e.key === " ";
-  
-                                      // Check if the pressed key is not allowed
-                                      if (
-                                        !allowedKeys.includes(e.key) &&
-                                        !allowedCharPattern.test(e.key) &&
-                                        !isSpaceKey
-                                      ) {
-                                        e.preventDefault(); // Prevent the default action of the disallowed key
-                                      }
-                                    }}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.state && <p className="error-message">{error.state}</p>}
+            {error.state && <p className="error-message">{error.state}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -947,35 +1144,17 @@ if (fieldName === "pan") {
             <input
               type="text"
               name="country"
+              maxLength={20}
               placeholder="Country"
               value={customerData.country}
               onChange={handleChange}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
               style={styles.input}
-               onKeyDown={(e) => {
-                                      handleDown(e);
-                                      const allowedKeys = [
-                                        "Backspace",
-                                        "ArrowLeft",
-                                        "Space",
-                                        "ArrowRight",
-                                        "Delete",
-                                        "Tab",
-                                      ];
-                                      const allowedCharPattern = /^[a-zA-Z/]$/;
-                                      const isSpaceKey = e.key === " ";
-  
-                                      // Check if the pressed key is not allowed
-                                      if (
-                                        !allowedKeys.includes(e.key) &&
-                                        !allowedCharPattern.test(e.key) &&
-                                        !isSpaceKey
-                                      ) {
-                                        e.preventDefault(); // Prevent the default action of the disallowed key
-                                      }
-                                    }}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.country && <p className="error-message">{error.country}</p>}
+            {error.country && <p className="error-message">{error.country}</p>}
           </div>
 
           <div style={styles.formGroup}>
@@ -984,31 +1163,16 @@ if (fieldName === "pan") {
               type="text"
               placeholder="Pincode"
               name="pincode"
+              maxLength={6}
               value={customerData.pincode}
               onChange={handleChange}
-                onBlur={handleBlur}
+              onBlur={handleBlur}
               style={styles.input}
-                onKeyDown={(e) => {
-                                      handleDown(e);
-                                      const allowedKeys = [
-                                        "Backspace",
-                                        "ArrowLeft",
-                                        "ArrowRight",
-                                        "Delete",
-                                        "Tab",
-                                      ];
-                                      const allowedCharPattern = /^[0-9]$/;
-  
-                                      // Check if the pressed key is not allowed
-                                      if (
-                                        !allowedKeys.includes(e.key) &&
-                                        !allowedCharPattern.test(e.key)
-                                      ) {
-                                        e.preventDefault(); // Prevent the default action of the disallowed key
-                                      }
-                                    }}
+              onKeyDown={(e) => {
+                handleDown(e);
+              }}
             />
-              {error.pincode && <p className="error-message">{error.pincode}</p>}
+            {error.pincode && <p className="error-message">{error.pincode}</p>}
           </div>
         </div>
       </div>
@@ -1055,9 +1219,8 @@ if (fieldName === "pan") {
                 onChange={(e) =>
                   setShowOptionalFields({
                     ...showOptionalFields,
-                   quantity: e.target.checked,
+                    quantity: e.target.checked,
                   })
-                  
                 }
               />
               Quantity
@@ -1090,8 +1253,11 @@ if (fieldName === "pan") {
                 {showOptionalFields.discount && (
                   <th style={styles.th}>Discount (%)</th>
                 )}
-                {showOptionalFields.gst && <th style={styles.th}>GST (%)</th>}
-                <th style={styles.th}>Total</th>
+                  <th style={styles.th}>Subtotal (₹)</th>
+                 {showOptionalFields.gst && <th style={styles.th}>GST (%)</th>}
+              
+              {showOptionalFields.gst && <th style={styles.th}>GST Amount (₹)</th>}
+              <th style={styles.th}>Total (₹)</th>
                 {invoiceType === "invoice" && <th style={styles.th}>Paid</th>}
                 {invoiceType === "invoice" && (
                   <th style={styles.th}>Balance</th>
@@ -1102,8 +1268,9 @@ if (fieldName === "pan") {
             </thead>
             <tbody>
               {services.map((service, index) => {
-                const serviceTotal = calculateServiceTotal(service);
-                const balance = serviceTotal - parseFloat(service.paid || 0);
+                const serviceCalc  = calculateServiceTotal(service);
+              const paidValidation = validatePaidAmount(service);
+              const balance = serviceCalc.totalWithGst - parseFloat(service.paid || 0);
 
                 return (
                   <tr key={service.id}>
@@ -1113,7 +1280,9 @@ if (fieldName === "pan") {
                           name="service"
                           className="form-control"
                           required
-                          onChange={(e) => setSelectedService(e.target.value)}
+                          onChange={(e) =>
+                            updateService(service.id, "selectedService", e.target.value)
+                          }
                         >
                           <option value="">Select a service</option>
                           {servicess?.map((service, index) => (
@@ -1142,66 +1311,52 @@ if (fieldName === "pan") {
                       <input
                         type="text"
                         value={service.price}
-                        onChange={(e) =>
-                          updateService(
-                            service.id,
-                            "price",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
+                         onChange={(e) => handlePriceChange(e, service.id)}
                         style={styles.tableInput}
                         placeholder="0"
-                                onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
-
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                        onKeyDown={(e) => {
+                          handleDown(e)
+                         }}
+                         maxLength={6}
                       />
+                       {priceError[service.id] && (
+                <div style={{ color: "red", fontSize: "12px" }}>
+                  {priceError[service.id]}
+                </div>
+              )}
                     </td>
                     {showOptionalFields.quantity && (
                       <td style={styles.td}>
                         <input
                           type="number"
                           value={service.quantity}
-                         onChange={(e) =>
-  updateService(
-    service.id,
-    "quantity",
-    showOptionalFields.quantity === true
-      ? parseFloat(e.target.value) || 1
-      : 0
-  )
-}
+                          onChange={(e) =>
+                            updateService(
+                              service.id,
+                              "quantity",
+                              showOptionalFields.quantity === true
+                                ? parseFloat(e.target.value) || 1
+                                : 0
+                            )
+                          }
                           style={styles.tableInput}
-                                  onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
+                          onKeyDown={(e) => {
+                            const allowedKeys = [
+                              "Backspace",
+                              "ArrowLeft",
+                              "ArrowRight",
+                              "Delete",
+                              "Tab",
+                            ];
+                            const allowedCharPattern = /^[0-9]$/;
 
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                            if (
+                              !allowedKeys.includes(e.key) &&
+                              !allowedCharPattern.test(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
                           min="1"
                         />
                       </td>
@@ -1211,38 +1366,24 @@ if (fieldName === "pan") {
                         <input
                           type="text"
                           value={service.discount}
-                               maxLength={2}
-                          onChange={(e) =>
-                            updateService(
-                              service.id,
-                              "discount",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
+                          maxLength={2}
+                          onChange={(e) => handleDiscountChange(e, service.id)}
                           style={styles.tableInput}
                           placeholder="0"
-                          min="0"
-                          max="100"
-                                  onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
-
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                         
+                         
+                       onKeyDown={(e) => {
+                           handleDown(e)
+                          }}
                         />
+                          {discountError[service.id] && (
+                        <div style={{ color: "red", fontSize: "12px" }}>{discountError[service.id]}</div>
+                      )}
                       </td>
                     )}
+                      <td style={{ ...styles.td, textAlign: "right", fontWeight: 'bold' }}>
+                    ₹{serviceCalc.subtotal.toFixed(2)}
+                  </td>
                     {showOptionalFields.gst && (
                       <td style={styles.td}>
                         <input
@@ -1250,31 +1391,29 @@ if (fieldName === "pan") {
                           value={gstRate}
                           maxLength={2}
                           onChange={(e) =>
-                            setGstRate(parseFloat(e.target.value) || 0)
+                           handleGstRateChange(e)
                           }
                           style={styles.input}
-                                  onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
-
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                          onKeyDown={(e) => {
+                           handleDown(e)
+                          }}
                         />
+                         {gstError && (
+                        <div style={{ color: "red", fontSize: "12px" }}>{gstError}</div>
+                      )}
                       </td>
                     )}
+
+                   
+
+                  {showOptionalFields.gst && (
                     <td style={{ ...styles.td, textAlign: "right" }}>
-                      ₹{totals.total.toFixed(2)}
+                      ₹{serviceCalc.gstAmount.toFixed(2)}
+                    </td>
+                  )}
+
+                    <td style={{ ...styles.td, textAlign: "right" }}>
+                      ₹{serviceCalc.totalWithGst.toFixed(2)}
                     </td>
                     {invoiceType === "invoice" && (
                       <td style={styles.td}>
@@ -1290,24 +1429,27 @@ if (fieldName === "pan") {
                           }
                           style={styles.tableInput}
                           placeholder="0"
-                                  onKeyDown={(e) => {
-            const allowedKeys = [
-              "Backspace",
-              "ArrowLeft",
-              "ArrowRight",
-              "Delete",
-              "Tab",
-            ];
-            const allowedCharPattern = /^[0-9]$/;
+                          onKeyDown={(e) => {
+                            const allowedKeys = [
+                              "Backspace",
+                              "ArrowLeft",
+                              "ArrowRight",
+                              "Delete",
+                              "Tab",
+                            ];
+                            const allowedCharPattern = /^[0-9]$/;
 
-            if (
-              !allowedKeys.includes(e.key) &&
-              !allowedCharPattern.test(e.key)
-            ) {
-              e.preventDefault();
-            }
-          }}
+                            if (
+                              !allowedKeys.includes(e.key) &&
+                              !allowedCharPattern.test(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
                         />
+                          {!paidValidation.isValid && (
+                        <div className="error-message">{paidValidation.message}</div>
+                      )}
                       </td>
                     )}
                     {invoiceType === "invoice" && (
@@ -1561,17 +1703,16 @@ if (fieldName === "pan") {
                   </span>
                   {customerData.phone || "Phone"}
                 </p>
-             {
-              customerData.email && 
-              <p style={{ color: "#6b7280", margin: "7px 0" }}>
-                  {" "}
-                  <span style={{ color: "#e31b25", fontWeight: "bold" }}>
+                {customerData.email && (
+                  <p style={{ color: "#6b7280", margin: "7px 0" }}>
                     {" "}
-                    Email:
-                  </span>{" "}
-                  {customerData.email || "Email"}
-                </p>
-             }   
+                    <span style={{ color: "#e31b25", fontWeight: "bold" }}>
+                      {" "}
+                      Email:
+                    </span>{" "}
+                    {customerData.email || "Email"}
+                  </p>
+                )}
                 {customerData.gst && (
                   <p style={{ color: "#6b7280", margin: "7px 0" }}>
                     {" "}
@@ -1623,17 +1764,14 @@ if (fieldName === "pan") {
                       Discount (%)
                     </th>
                   )}{" "}
-                  {showOptionalFields.gst && (
-                    <th style={{ ...styles.th, textAlign: "right" }}>
-                      GST (%)
-                    </th>
-                  )}
-                  {showOptionalFields.gst && (
-                    <th style={{ ...styles.th, textAlign: "right" }}>
-                      GST Amount
-                    </th>
-                  )}
-                  <th style={{ ...styles.th, textAlign: "right" }}>Total</th>
+
+                  <th style={{ ...styles.th, textAlign: "right" }}>Subtotal (₹)</th>
+                 {showOptionalFields.gst && <th style={{ ...styles.th, textAlign: "right" }}>GST (%)</th>}
+              
+              {showOptionalFields.gst && <th style={{ ...styles.th, textAlign: "right" }}>GST Amount (₹)</th>}
+              <th style={{ ...styles.th, textAlign: "right" }}>Total (₹)</th>
+                 
+                
                   {invoiceType === "invoice" && (
                     <th style={{ ...styles.th, textAlign: "right" }}>Paid</th>
                   )}
@@ -1646,13 +1784,14 @@ if (fieldName === "pan") {
               </thead>
               <tbody>
                 {services.map((service) => {
-                  const serviceTotal = calculateServiceTotal(service);
-                  const balance = serviceTotal - parseFloat(service.paid || 0);
+                const serviceCalc  = calculateServiceTotal(service);
+              const paidValidation = validatePaidAmount(service);
+              const balance = serviceCalc.totalWithGst - parseFloat(service.paid || 0);
 
                   return (
                     <tr key={service.id}>
                       <td style={{ ...styles.td, textAlign: "left" }}>
-                        {selectedService || "Service Name"}
+                        {service.selectedService || "Service Name"}
                         <div>
                           <ul
                             style={{
@@ -1686,20 +1825,26 @@ if (fieldName === "pan") {
                           {service.discount}%
                         </td>
                       )}
-                      {showOptionalFields.gst && (
-                        <td style={{ ...styles.td, textAlign: "right" }}>
-                          {gstRate}%
+                    <td style={{ ...styles.td, textAlign: "right"}}>
+                    ₹{serviceCalc.subtotal.toFixed(2)}
+                  </td>
+                    {showOptionalFields.gst && (
+                      <td style={{ ...styles.td, textAlign: "right"}}>
+                         {gstRate}%
                         </td>
-                      )}
-                      {showOptionalFields.gst && (
-                        <td style={{ ...styles.td, textAlign: "right" }}>
-                          ₹{totals.totalGst.toFixed(2)}
-                        </td>
-                      )}
+                    )}
 
-                      <td style={{ ...styles.td, textAlign: "right" }}>
-                        ₹{totals.total.toFixed(2)}
-                      </td>
+                   
+
+                  {showOptionalFields.gst && (
+                    <td style={{ ...styles.td, textAlign: "right" }}>
+                      ₹{serviceCalc.gstAmount.toFixed(2)}
+                    </td>
+                  )}
+
+                    <td style={{ ...styles.td, textAlign: "right" }}>
+                      ₹{serviceCalc.totalWithGst.toFixed(2)}
+                    </td>
                       {invoiceType === "invoice" && (
                         <td style={{ ...styles.td, textAlign: "right" }}>
                           ₹{service.paid.toFixed(2)}
@@ -1707,7 +1852,7 @@ if (fieldName === "pan") {
                       )}
                       {invoiceType === "invoice" && (
                         <td style={{ ...styles.td, textAlign: "right" }}>
-                          ₹{totals.balance.toFixed(2)}
+                          ₹{balance.toFixed(2)}
                         </td>
                       )}
                     </tr>
@@ -1721,20 +1866,22 @@ if (fieldName === "pan") {
             <div style={styles.totalsCard}>
               <div style={styles.totalRow}>
                 <span>Subtotal:</span>
-                <span>₹{totals.subtotal.toFixed(2)}</span>
+               <span>₹{totals.subtotal.toFixed(2)}</span>
               </div>
-              {showOptionalFields.gst && (
-                <>
-                  <div style={styles.totalRow}>
-                    <span>CGST ({gstRate / 2}%):</span>
-                    <span>₹{totals.cgst.toFixed(2)}</span>
-                  </div>
-                  <div style={styles.totalRow}>
-                    <span>SGST ({gstRate / 2}%):</span>
-                    <span>₹{totals.sgst.toFixed(2)}</span>
-                  </div>
-                </>
-              )}
+               {showOptionalFields.gst && (
+          <>
+            <div style={styles.totalRow}>
+              <span>CGST ({(gstRate/2).toFixed(2)}%):</span>
+              <span>₹{totals.cgst.toFixed(2)}</span>
+            </div>
+            <div style={styles.totalRow}>
+              <span>SGST ({(gstRate/2).toFixed(2)}%):</span>
+              <span>₹{totals.sgst.toFixed(2)}</span>
+            </div>
+            
+          </>
+        )}
+        
               <div style={styles.totalRowBold}>
                 <span>Total:</span>
                 <span>₹{totals.total.toFixed(2)}</span>
@@ -1827,7 +1974,7 @@ if (fieldName === "pan") {
 
         <div style={styles.previewFooter}>
           <button
-            onClick={handleDownload}
+            onClick={handleSubmit}
             style={{ ...styles.button, ...styles.buttonGreen }}
           >
             Save PDF
