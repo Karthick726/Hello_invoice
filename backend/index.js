@@ -19,6 +19,7 @@ app.use(
       "https://hello-invoice-fronte.vercel.app",
       "https://hello-invoice-fronte.vercel.app/",
       "https://hello-invoice-fronte.vercel.app",
+     "https://hello-invoice-frontend.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTION"],
     credentials: true,

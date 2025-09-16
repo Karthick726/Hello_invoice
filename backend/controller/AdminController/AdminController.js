@@ -71,8 +71,8 @@ const LoginController = async (req, res) => {
     console.log("Generated Token:", accessToken);
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
 
     return res.status(200).json({ success: true });
