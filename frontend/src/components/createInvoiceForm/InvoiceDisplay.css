@@ -1,0 +1,222 @@
+.invoice-container .main-invoice-content,
+.invoice-container footer {
+  padding: 20px 40px;
+}
+
+.invoice-container .logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.03;
+  width: 600px;
+  height: auto;
+  object-fit: cover;
+}
+
+.invoice-container .logo-image {
+  width: 300px;
+  height: 100px;
+  object-fit: contain;
+  margin: 20px 20px;
+}
+
+.invoice-container .header {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 200px;
+}
+
+.invoice-container .address-info {
+  display: flex;
+  gap: 20px;
+  /* flex-wrap: wrap; */
+}
+
+.invoice-container .address-info .address {
+  background-color: #f5cdcd;
+  width: 50%;
+  padding: 10px;
+  border-radius: 10px;
+}
+p{
+  color: black;
+}
+
+.invoice-container .header h1 {
+  font-weight: bold;
+  letter-spacing: 2%;
+  color: #e31b25;
+  margin: 20px 20px 0 0;
+  padding: 0;
+}
+
+.invoice-container table {
+  width: 100%;
+}
+
+.invoice-container th,
+.invoice-container td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid rgb(255, 221, 221);
+}
+
+.invoice-container tr:nth-child(even) {
+  background-color: #fffbfb;
+}
+
+.invoice-container .address {
+  font-size: 16px;
+}
+
+.invoice-container .table-container {
+  margin-top: 30px;
+}
+
+.invoice-container .total-container {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 5px;
+  color: #fff;
+}
+
+.invoice-container .service-container {
+  color: #e31b25;
+  font-weight: bold;
+  letter-spacing: 2px;
+  font-size: 1.2rem;
+}
+
+.invoice-container .bank-info-container p span {
+  display: inline-block;
+  width: 200px;
+  font-weight: bold;
+}
+
+.invoice-container p,
+.invoice-container li {
+  font-size: 16px !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .invoice-container .header {
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .invoice-container .header h1 {
+    margin: 0px !important;
+    text-align: center;
+  }
+
+  .invoice-container .address-info {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .invoice-container .address-info .address {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .invoice-container .table-container {
+    font-size: 12px; /* Smaller font for table on smaller screens */
+  }
+
+  .invoice-container .logo-image {
+    width: 300px; /* Make logo responsive */
+    height: 80px;
+  }
+
+  .invoice-container .service-container span {
+    display: flex;
+    justify-content: center;
+    font-size: 1rem;
+  }
+  .invoice-container .invoice-number {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .invoice-container .header h1 {
+    font-size: 1rem; /* Adjust header size for small screens */
+  }
+
+  .invoice-container .bank-info-container p span {
+    display: block; /* Stack payment info labels */
+    width: auto;
+  }
+
+  .invoice-container p,
+  .invoice-container li {
+    font-size: 12px !important; /* Further reduce font size */
+  }
+}
+
+
+th{
+  text-align: right;
+}
+
+td{
+  text-align: left;
+}
+
+.dot {
+  height: 8px;
+  width: 8px;
+  background-color: #ff7171;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.price-display {
+  display: block;
+  font-size: 18px;       /* Bigger font size for numbers */
+  font-weight: bold;
+  color: #e31b25;        /* Red shade */
+  margin-top: 20px;
+}
+
+.price-in-words {
+  font-size:16px;     /* Slightly smaller */
+  font-style: italic;
+  color: #555;           /* Grey */
+  margin-top: 8px;
+}
+
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table > thead > tr > th {
+  background-color: #e31b25;
+  color: white;         /* Heading color */
+  font-weight: bold;
+  padding: 15px !important;
+  text-align: center;
+  border-bottom: 2px solid #e31b25;font-size: 18px !important;
+}
+
+.table> tbody > tr>td {
+   background-color: #ff9999;         /* Light red for data */
+   color: black;
+  padding: 15px !important;
+  font-size: 16px !important;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+
+
+.error-message{
+  font-size: 14px;
+  color: red;
+}

@@ -1,0 +1,83 @@
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px;
+}
+
+.info-box {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.company-name {
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #e31b25;
+  margin-bottom: 10px;
+}
+
+.contact-block p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.address-block, .service-block, .terms-block {
+  margin-top: 12px;
+}
+
+.address-block h4,
+.service-block h4,
+.terms-block h4 {
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: #333;
+}
+
+.service-block ul,
+.terms-block ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.service-block li,
+.terms-block li {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.update-btn {
+  margin-top: 12px;
+  padding: 6px 14px;
+  border: none;
+  background: #e31b25;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.update-btn:hover {
+  background: #c4161d;
+}
+
+.dot {
+  height: 8px;
+  width: 8px;
+  background-color: #ff7171;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.company-name{
+    text-align: center;
+}
+
+p span {
+  font-weight: bold;
+  color: #e31b25;
+}

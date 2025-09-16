@@ -1,0 +1,19 @@
+table {
+  overflow-x: scroll !important;
+  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+}
+.invoice-list-table tr:nth-child(even) {
+  background-color: #fffafa;
+}
+
+.invoice-download-btn {
+  background-color: #e31b26;
+  color: #fff;
+  transition: all 0.3s;
+  box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px;
+  &:hover {
+    background-color: #fffafa;
+    color: #e31b26;
+    transition: all 0.3s;
+  }
+}

@@ -1,0 +1,176 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://kit.fontawesome.com/b8eb626b47.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>Invoice</title>
+    <style>
+      body { font-family: "Poppins", sans-serif; position: relative; }
+      .main-content, footer { padding: 20px 40px; } .logo { position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.01;
+      width: 600px; height: auto; object-fit: cover; } .logo-image { width:
+      300px; height: 100px; object-fit: contain; margin: 20px 20px; } .header {
+      display: flex; justify-content: space-between; } .address-info { display:
+      flex; gap: 20px; } .address-info .address { background-color: #fffbfb;
+      width: 50%; padding: 10px; border-radius: 10px; } .header h1 {
+      font-weight: bold; letter-spacing: 2%; color: #e31b25; margin: 20px 20px 0
+      0; padding: 0; } table { width: 100%; } th, td { padding: 8px; text-align:
+      center; border: 1px solid rgb(255, 221, 221); } tr:nth-child(even) {
+      background-color: #fffbfb; } .address { font-size: 10px; }
+      .table-container { margin-top: 30px; } .total-container { display: flex;
+      justify-content: space-between; padding-top: 5px; color: #fff;}
+      .service-container { color: #e31b25; font-weight: bold; letter-spacing:
+      2px; font-size: 1rem; } .bank-info-container p span { display:
+      inline-block; width: 200px; font-weight: bold; } p, li { font-size: 12px
+      !important; }
+    </style>
+  </head>
+  <body>
+    <img src="{{base64Image}}" alt="Invoice Image" class="logo" />
+
+    <!-- Header -->
+    <div class="header">
+      <img src="{{base64Image}}" alt="Invoice Logo" class="logo-image" />
+      <div style="margin-right: 25px" class="mt-2">
+        <h1>INVOICE</h1>
+        <h6>{{date}}</h6>
+      </div>
+    </div>
+
+    <section class="main-content">
+      <span class="service-container text-uppercase">
+        {{#each items}} <span>{{this.description}}</span>{{/each}}
+      </span>
+      <h6 style="color: #999" class="mb-3 mt-2">
+        Invoice No:
+        <span style="color: #000" class="fw-600">#{{invoiceNumber}}</span>
+      </h6>
+
+      <!-- Address Information -->
+      <section class="address-info">
+        <div class="address">
+          <h6>Billed By:</h6>
+          <h6><strong style="color: #e31b25">{{billedBy.name}}</strong>,</h6>
+          <p>{{billedBy.address.street}}</p>
+          <p>
+            {{billedBy.address.district}},
+            {{billedBy.address.state}},
+            {{billedBy.address.country}}
+            -
+            {{billedBy.address.pincode}}
+          </p>
+          <p>Phone: {{billedBy.phone}}</p>
+        </div>
+        <div class="address">
+          <h6>Billed To:</h6>
+          <h6><strong style="color: #e31b25">{{clientName}}</strong></h6>
+          <p>{{clientEmail}}</p>
+          <p>{{Address.street}}</p>
+          <p>{{Address.district}},
+            {{Address.state}},
+            {{Address.country}}
+            -
+            {{Address.pincode}}</p>
+          <p>Phone: {{phone}}</p>
+        </div>
+      </section>
+
+      <!-- Dynamic Invoice Table -->
+      <section class="table-container">
+        <table>
+          <thead>
+            <tr
+              style="background-color: #e31b25; color: #fff; font-weight: bold"
+            >
+              <th>SERVICE</th>
+              <th>PRICE</th>
+              <th>QTY</th>
+              <th>GST(%)</th>
+              <th>TOTAL</th>
+              <th>BALANCE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each items}}
+              <tr>
+                <td>{{this.description}}</td>
+                <td>{{this.price}}</td>
+                <td>{{this.quantity}}</td>
+                {{#if this.gst}}
+                  <div class="mt-5">
+                    <td> {{this.gst}}</td>
+                  </div>
+                {{else}}
+                  <td>Nill</td>
+                {{/if}}
+                <td><i class="fa-solid fa-indian-rupee-sign"></i>
+                  {{multiply this.price this.quantity}}</td>
+                <td>{{this.balance}}</td>
+              </tr>
+            {{/each}}
+            <tr style="background-color: #ffdfe0; color: #ff2f2f">
+              <td colspan="5" style="text-align: right; font-size:20px">Total
+                (INR)</td>
+              <td style="font-size:20px;"> {{total}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Dynamic Total Price -->
+      {{! <div class="total-container my-4">
+        <div></div>
+        <div
+          class="d-flex justify-content-evenly w-25 pt-2 ms-2"
+          style="background-color: #e31b25; color: #fff"
+        >
+
+         
+        </div>
+      </div> }}
+
+      <!-- Account Info Section -->
+      <div class="bank-info-container my-4">
+        <h6 class="mb-3"><strong>Payment Info:</strong></h6>
+
+        <p><span>Account Name:</span> {{billedBy.accountInfo.accountName}}</p>
+        <p><span>Account No:</span> {{billedBy.accountInfo.accountNumber}}</p>
+        <p><span>IFSC Code:</span> {{billedBy.accountInfo.ifceCode}}</p>
+        <p><span>Bank:</span> {{billedBy.accountInfo.bankName}} </p>
+        <p><span>Account Type:</span> {{billedBy.accountInfo.accountType}}</p>
+        <p><span>GST:</span> {{billedBy.accountInfo.gstNumber}}</p>
+        <p><span>G-pay Number:</span> {{billedBy.accountInfo.gpay}} </p>
+
+        <p>{{accountInfo}}</p>
+
+      </div>
+
+    </section>
+
+    <footer style="background-color: #fffbfb">
+      <h6 style="color: #e31b25">Terms and Conditions</h6>
+      <ul style="list-style-type: number">
+        {{#each termsAndCondition}}
+
+          <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </footer>
+  </body>
+</html>

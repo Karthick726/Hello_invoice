@@ -1,0 +1,104 @@
+/* Container styles for the signup form and brand image */
+.signup-container {
+  height: 100vh;
+}
+
+.brand-container {
+  background: linear-gradient(rgba(0, 0, 0, 0.347), rgba(0, 0, 0, 0.393)),
+    url("../assets/loginBg.jpg");
+
+  background-size: cover;
+  color: white;
+  position: relative;
+}
+
+.login-Invoice-header {
+  font-size: 4em;
+}
+.login-Invoice-header span {
+  color: #ff202c;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: #fff;
+}
+
+.brand-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.form-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-header {
+  margin-bottom: 24px;
+}
+
+.signup-button {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  background-color: #e31b25 !important;
+}
+
+.signup-button:hover {
+  background-color: rgb(255, 85, 85) !important;
+}
+
+.signin-link {
+  color: black !important;
+  margin-top: 16px;
+}
+
+.signin-link-text {
+  color: black !important;
+}
+
+.SignUphomeRouteArrow {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  color: rgb(45, 45, 45);
+  font-size: 20px;
+  z-index: 1000;
+}
+
+@media (max-width: 991px) {
+  .glassmorphism {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .login-Invoice-header {
+    font-size: 3em;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand-container {
+    display: none;
+  }
+
+  .signup-container {
+    background: url("../assets/loginBg.jpg");
+
+    background-size: cover;
+  }
+
+  .glassmorphism {
+    background: rgba(255, 255, 255, 0.379);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 10px;
+    padding: 32px;
+    box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+}

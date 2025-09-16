@@ -1,0 +1,41 @@
+.layout-container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 99;
+  width: auto;
+  margin-right: 40px;
+}
+
+.main-content {
+  flex: 1;
+  margin: 120px 10px 10px 2%;
+  padding: 10px;
+}
+
+@media (max-width: 991px) {
+  .sidebar {
+    width: auto;
+  }
+
+  .main-content {
+    width: 100%;
+    margin: 120px 10px !important;
+    padding: 0;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 99;
+    width: auto;
+    margin-right: 5px;
+  }
+}
