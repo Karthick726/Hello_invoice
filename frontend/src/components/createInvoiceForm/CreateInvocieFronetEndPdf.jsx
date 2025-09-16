@@ -617,12 +617,17 @@ if (fieldName === "pan") {
     });
   };
 
+
+  function capitalizeFirstLetter(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
     const handleBlur = (e) => {
     const { name, value } = e.target;
     if (value === "") {
       setError((prevState) => ({
         ...prevState,
-        [name]: `${name} field is required`,
+        [name]: `${capitalizeFirstLetter(name)} field is required`
       }));
     }
   };
@@ -764,14 +769,13 @@ if (fieldName === "pan") {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Email *</label>
+            <label style={styles.label}>Email</label>
             <input
               type="email"
               placeholder="Email"
               name="email"
               value={customerData.email}
               onChange={handleChange}
-                onBlur={handleBlur}
               style={styles.input}
               onKeyDown={(e) => {
             const allowedKeys = [
@@ -1461,7 +1465,9 @@ if (fieldName === "pan") {
                   </span>
                   {customerData.phone || "Phone"}
                 </p>
-                <p style={{ color: "#6b7280", margin: "7px 0" }}>
+             {
+              customerData.email && 
+              <p style={{ color: "#6b7280", margin: "7px 0" }}>
                   {" "}
                   <span style={{ color: "#e31b25", fontWeight: "bold" }}>
                     {" "}
@@ -1469,6 +1475,7 @@ if (fieldName === "pan") {
                   </span>{" "}
                   {customerData.email || "Email"}
                 </p>
+             }   
                 {customerData.gst && (
                   <p style={{ color: "#6b7280", margin: "7px 0" }}>
                     {" "}
