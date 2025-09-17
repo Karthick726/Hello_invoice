@@ -981,6 +981,60 @@ discount:value.discount
     }
   };
 
+
+ const searchInvoice=async()=>{
+  try{
+
+     const response = await AxiosInstance.post("/proforma/get-invoice",{invoiceNumber},{withCredentials:true})
+
+     if(response.status===200){
+        console.log(response.data)
+        const customerDetails=response.data.data.clientDetails
+        const optionFields=response.data.data.services
+       setCustomerData((prev) => ({
+  ...prev,
+  clientType: customerDetails.type || "individual",
+  name: customerDetails.businessName || "",
+  phone: customerDetails.phone || "",
+  email: customerDetails.email || "",
+  gst: customerDetails.gst || "",
+  pan: customerDetails.pan || "",
+  street: customerDetails.street || "",
+  district: customerDetails.district || "",
+  state: customerDetails.state || "",
+  country: customerDetails.country || "India",
+  pincode: customerDetails.pincode || "",
+}));
+
+console.log(optionFields)
+
+setShowOptionalFields({
+  gst: optionFields.some((s) => s.gstBoolean) || false,
+  quantity: optionFields.some((s) => s.quantityBoolean) || false,
+  discount: optionFields.some((s) => s.discountBoolean) || false,
+});
+
+const gstService = optionFields.find((s) => s.gstBoolean);
+setGstRate(gstService ? gstService.gst : 0);
+
+setServices(
+  optionFields.map((s) => ({
+    id: s._id,                         // MongoDB ID
+    name: s.description || "",         // map serviceName → name
+    selectedService: s.serviceName || "", // or use another field for dropdown
+    price: s.price || 0,
+    quantity: s.quantity || 1,
+    discount: s.discount || 0,
+    paid: 0, // default, unless backend has it
+  }))
+);
+     }
+  }catch(err){
+    console.log(err)
+  }
+  }
+
+  console.log(showOptionalFields)
   const totals = calculateOverallTotals();
   return (
     <div style={styles.container}>
@@ -995,7 +1049,41 @@ discount:value.discount
               onChange={(e) =>{
                setInvoiceNumber(generateProformaNumber()) 
                 setInvoiceType(e.target.value)
+                setCustomerData({
+                    clientType: "individual",
+    name: "",
+    phone: "",
+    email: "",
+    gst: "",
+    pan: "",
+    street: "",
+    district: "",
+    state: "",
+    country: "India",
+    pincode: "",
+                })
+                setShowOptionalFields({
+                  gst:false,
+                  discount:false,
+                  quantity:false
+                })
+                setTerm([{
+                  value:"",
+                  error:""
+                }])
+                setInvoiceNumber("HTM-")
+                setServices([{
+                   id: 1,
+      name: "",
+      selectedService:"",
+      price: 0,
+      quantity: 1,
+      discount: 0,
+      paid: 0,
+                }])
               } }
+
+           
               style={styles.select}
             >
               <option value="invoice">Invoice</option>
@@ -1015,6 +1103,7 @@ discount:value.discount
           </div>
 
           {invoiceType === "invoice" && (
+            <>
             <div style={styles.formGroup}>
               <label style={styles.label}>Invoice Number</label>
               <input
@@ -1026,8 +1115,17 @@ discount:value.discount
                 maxLength={10}
               />
             </div>
+          
+              </>
           )}
         </div>
+        {invoiceType === "invoice" &&
+            <div>
+              <button onClick={searchInvoice} style={styles.button}>
+                Search Invoice
+              </button>
+              </div>
+        }
       </div>
 
       <div style={styles.card}>
@@ -1331,6 +1429,7 @@ discount:value.discount
                           name="service"
                           className="form-control"
                           required
+                          value={service.selectedService}
                           onChange={(e) =>
                             updateService(service.id, "selectedService", e.target.value)
                           }

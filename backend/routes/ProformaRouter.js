@@ -7,5 +7,7 @@ const proformaInvoice=require("../controller/ProformaContoller")
 // Define routes
 router.post("/post-invoice", auth,proformaInvoice.createProformaInvoice );
 
+router.post("/get-invoice",auth,proformaInvoice.getInvoiceByNumber)
+
 
 module.exports = router;

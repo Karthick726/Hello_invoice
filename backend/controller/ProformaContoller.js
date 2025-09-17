@@ -38,3 +38,29 @@ exports.createProformaInvoice = async (req, res) => {
     });
   }
 };
+
+exports.getInvoiceByNumber = async (req, res) => {
+  try {
+    const { invoiceNumber } = req.body; // get from URL params
+
+    const invoice = await ProformaInvoice.findOne({ invoiceNumber });
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        message: `Invoice with number ${invoiceNumber} not found`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: invoice,
+    });
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching invoice",
+    });
+  }
+};
