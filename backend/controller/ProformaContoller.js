@@ -64,3 +64,23 @@ exports.getInvoiceByNumber = async (req, res) => {
     });
   }
 };
+
+exports.getInvoice=async(req,res)=>{
+  try{
+ const invoice = await ProformaInvoice.find();
+
+  
+
+    res.status(200).json({
+      success: true,
+      data: invoice,
+    });
+
+  }catch(err){
+ console.error("Error fetching invoice:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching invoice",
+    });
+  }
+}

@@ -1900,7 +1900,7 @@ setServices(
                 <strong style={{ color: "#e31b25" }}>Service</strong>
               </h4>
             </div>
-            <table style={styles.table} className="table">
+            <table style={styles.table} className="tables">
               <thead>
                 <tr>
                   <th style={styles.th}>Service</th>
