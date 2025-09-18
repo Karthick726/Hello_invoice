@@ -69,3 +69,8 @@
   font-weight: 500;
   color: #666;
 }
+
+.breadcrumb-item >a{
+  text-decoration: none;
+  text-transform: capitalize;
+}

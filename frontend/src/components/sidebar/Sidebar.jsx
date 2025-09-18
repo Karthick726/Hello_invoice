@@ -111,6 +111,14 @@ const Sidebar = () => {
                   <i className="bx bx-folder nav_icon"></i>
                   <span className="nav_name">Proforma Invoice</span>
                 </Link>
+                 <Link
+                  to="/get-invoice"
+                  className={`nav_link ${isActive("/get-invoice")}`}
+                  onClick={handleLinkClick}
+                >
+                  <i className="bx bx-folder nav_icon"></i>
+                  <span className="nav_name"> Invoice</span>
+                </Link>
                 <Link
                   to="/update-info"
                   className={`nav_link ${isActive("/update-info")}`}

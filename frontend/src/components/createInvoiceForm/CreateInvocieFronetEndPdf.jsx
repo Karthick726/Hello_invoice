@@ -13,7 +13,7 @@ const CreateInvoiceFronetEndPdf = () => {
  // const [, setSelectedService] = useState("");
   const [term, setTerm] = useState([{ value: "", error: "" }]);
   const [info, setInfo] = useState([]);
-  const [invoiceType, setInvoiceType] = useState("invoice");
+  const [invoiceType, setInvoiceType] = useState("proforma");
   const [gstRate, setGstRate] = useState(0);
   const [date, setDate] = useState();
   const [invoiceNumber, setInvoiceNumber] = useState("HTM-");
@@ -575,6 +575,23 @@ const validateThePdf = () => {
   return true;
 };
 
+const validateAmount = (services) => {
+  return services.map(service => {
+    const serviceCalc = calculateServiceTotal(service);
+    const paidValidation = validatePaidAmount(service);
+    const paid = parseFloat(service.paid || 0);
+    const balance = serviceCalc.totalWithGst - paid;
+
+    if (!paidValidation.isValid) {
+      return { isValid: false, message: paidValidation.message, service };
+    }
+    if (balance < 0) {
+      return { isValid: false, message: "Negative balance not allowed", service };
+    }
+    return { isValid: true, message: "", service };
+  });
+};
+
  const handleSubmit=async()=>{
     if(invoiceType==="proforma"){
         if(!validateThePdf()){
@@ -635,7 +652,72 @@ discount:value.discount
           return false;
         }
 
-          handleDownload()
+     const results = validateAmount(services);
+const allValid = results.every(r => r.isValid);
+
+if (!allValid) {
+  alert("One or more services have negative balance!");
+  return false;
+}
+         try{
+
+          const response=await AxiosInstance.post("/invoice/post-invoice",
+            {
+              invoiceNumber:invoiceNumber,
+              date:date,
+              customerDetails:{
+                type:customerData.clientType,
+                businessName:customerData.name,
+                phone:customerData.phone,
+                email:customerData.email,
+                gst:customerData.gst,
+                pan:customerData.pan,
+                street:customerData.street,
+                district:customerData.district,
+                state:customerData.state,
+                country:customerData.country,
+                pincode:customerData.pincode
+              },
+              services:services.map((value,index)=>{
+                const serviceCalc  = calculateServiceTotal(value);
+              const paidValidation = validatePaidAmount(value);
+              const balance = serviceCalc.totalWithGst - parseFloat(value.paid || 0);
+                 return {
+                  serviceName:value.selectedService,
+                  description:value.name,
+                  price:value.price,
+                  gstBoolean:showOptionalFields.gst,
+                  discountBoolean:showOptionalFields.discount,
+                  quantityBoolean:showOptionalFields.quantity,
+                  quantity:value.quantity,
+                  gst:gstRate,
+                  discount:value.discount,
+                  total:serviceCalc.totalWithGst,
+                  gstAmount:serviceCalc.gstAmount,
+                  paid:value.paid,
+                  balance:balance
+                 }
+              }),
+              term:term.map((value)=> value.value),
+              totalAmount:totals.total,
+              totalPaid:totals.totalPaid,
+              balanceDue:totals.balance,
+            }
+
+          )
+
+          if(response.status===200){
+            alert("Sucessully  invoice data stored")
+             handleDownload()
+          }
+
+        }catch(err){
+          console.log(err)
+          if(err.message && err.response.status===400){
+            alert("This invoice is already Created");
+             window.location.reload();
+          }
+        }
     }
 
  }
@@ -943,10 +1025,9 @@ discount:value.discount
   // Handle discount change with validation
   const handleDiscountChange = (e, serviceId) => {
     const value = e.target.value;
-    console.log(value)
-    console.log(validateNumberInput(value))
+ 
     if (validateNumberInput(value)) {
-      const numValue = parseFloat(value) || 0;
+      const numValue =showOptionalFields.discount ===true ?  parseFloat(value) || 0 : 0;
       if (numValue < 100) {
         updateService(serviceId, 'discount', numValue);
         setDiscountError(prev => ({ ...prev, [serviceId]: '' }));
@@ -983,6 +1064,10 @@ discount:value.discount
 
 
  const searchInvoice=async()=>{
+  if(invoiceNumber.length !=10){
+      alert("Please enter the Invoice number")
+      return;
+  }
   try{
 
      const response = await AxiosInstance.post("/proforma/get-invoice",{invoiceNumber},{withCredentials:true})
@@ -1017,9 +1102,11 @@ setShowOptionalFields({
 const gstService = optionFields.find((s) => s.gstBoolean);
 setGstRate(gstService ? gstService.gst : 0);
 
+
+setTerm(response.data.data.terms.map((value)=>{ return {value:value,error:""}}))
 setServices(
   optionFields.map((s) => ({
-    id: s._id,                         // MongoDB ID
+    id: s._id || 1,                         // MongoDB ID
     name: s.description || "",         // map serviceName → name
     selectedService: s.serviceName || "", // or use another field for dropdown
     price: s.price || 0,
@@ -1031,11 +1118,20 @@ setServices(
      }
   }catch(err){
     console.log(err)
+    alert("Invoice Not found")
   }
   }
+  console.log(services)
 
-  console.log(showOptionalFields)
   const totals = calculateOverallTotals();
+
+  useEffect(()=>{
+
+    if(invoiceType==="proforma"){
+      const InvoiceNumberGenerated=generateProformaNumber()
+               setInvoiceNumber(InvoiceNumberGenerated) 
+    }
+  },[invoiceType])
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -1047,7 +1143,7 @@ setServices(
             <select
               value={invoiceType}
               onChange={(e) =>{
-               setInvoiceNumber(generateProformaNumber()) 
+                
                 setInvoiceType(e.target.value)
                 setCustomerData({
                     clientType: "individual",
@@ -1086,8 +1182,9 @@ setServices(
            
               style={styles.select}
             >
+               <option value="proforma">Proforma Invoice</option>
               <option value="invoice">Invoice</option>
-              <option value="proforma">Proforma Invoice</option>
+             
             </select>
           </div>
 
@@ -1378,11 +1475,19 @@ setServices(
               <input
                 type="checkbox"
                 checked={showOptionalFields.discount}
-                onChange={(e) =>
+                onChange={(e) =>{
                   setShowOptionalFields({
                     ...showOptionalFields,
                     discount: e.target.checked,
                   })
+
+                  const serviceUpdate = services.map(service => ({
+  ...service,
+  discount: 0
+}));
+
+                  setServices(serviceUpdate)
+                }
                 }
               />
               Discount

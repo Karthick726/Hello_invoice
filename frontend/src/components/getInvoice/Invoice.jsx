@@ -1,6 +1,5 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import AxiosInstance from "../api/AxiosInstance";
-import { Link } from "react-router-dom";
 import {
   Pagination,
   Stack,
@@ -12,28 +11,28 @@ import {
   Slide,
 } from "@mui/material";
 import "./ProformaInvoice.css";
-import CloseIcon from "@mui/icons-material/Close";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { Link } from "react-router-dom";
 import Logo from "../assets/logo1.webp";
+import CloseIcon from "@mui/icons-material/Close";
 
-const ProfomaInvoice = () => {
-  const [proforma, setProforma] = useState([]);
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+const Invoice = () => {
+      const [invoice, setInvoice] = useState([]);
+      const [page, setPage] = useState(1);
+      const [rowsPerPage, setRowsPerPage] = useState(5);
   const [info, setInfo] = useState([]);
   const [servicess, setServicess] = useState([]);
-  useEffect(() => {
+
+        useEffect(() => {
     getProfoma();
   }, []);
 
   const getProfoma = async () => {
     try {
-      const response = await AxiosInstance.get("/proforma/get-proforma", {
+      const response = await AxiosInstance.get("/invoice/get-invoice", {
         withCredentials: true,
       });
       if (response.status === 200) {
-        setProforma(response.data.data);
+        setInvoice(response.data.data);
       }
     } catch (err) {
       console.log(err);
@@ -46,12 +45,13 @@ const ProfomaInvoice = () => {
     setPage(value);
   };
 
-  const paginatedProforma = proforma.slice(
+  const paginatedInvoice = invoice.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
 
-  useEffect(() => {
+//fetch details of company
+   useEffect(() => {
     const fetchServices = async () => {
       try {
         const response = await AxiosInstance.get("/api/get-all-info", {
@@ -74,6 +74,8 @@ const ProfomaInvoice = () => {
 
     fetchServices();
   }, []);
+
+//view details
 
   const invoiceRef = useRef();
   const [gstRate, setGstRate] = useState(0);
@@ -118,10 +120,11 @@ const ProfomaInvoice = () => {
     setOpen(false);
   };
 
+
   const searchInvoice = async (invoiceNumber) => {
     try {
       const response = await AxiosInstance.post(
-        "/proforma/get-invoice",
+        "/invoice/get-number-invoice",
         { invoiceNumber },
         { withCredentials: true }
       );
@@ -156,8 +159,8 @@ const ProfomaInvoice = () => {
 
         const gstService = optionFields.find((s) => s.gstBoolean);
         setGstRate(gstService ? gstService.gst : 0);
-        console.log(response.data.data.terms, "terms");
-        setTerm(response.data.data.terms);
+        console.log(response.data.data.term, "terms");
+        setTerm(response.data.data.term);
         setServices(
           optionFields.map((s) => ({
             id: s._id, // MongoDB ID
@@ -166,7 +169,7 @@ const ProfomaInvoice = () => {
             price: s.price || 0,
             quantity: s.quantity || 1,
             discount: s.discount || 0,
-            paid: 0, // default, unless backend has it
+            paid: s.paid || 0, // default, unless backend has it
           }))
         );
       }
@@ -174,37 +177,10 @@ const ProfomaInvoice = () => {
       console.log(err);
     }
   };
-  console.log(term);
 
-  const handleDownload = () => {
-    const element = invoiceRef.current;
+  console.log(term)
 
-    html2canvas(element).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`Invoice_${invoiceNumber}.pdf`);
-      window.location.reload();
-    });
-  };
-
-  const styles = {
+    const styles = {
     container: {
       margin: "0 auto",
       padding: "20px",
@@ -544,26 +520,28 @@ const ProfomaInvoice = () => {
   const accountInfo = info.length > 0 ? info[0].accountInfo || {} : {};
 
   const totals = calculateOverallTotals();
+
   return (
-    <Fragment>
+       <Fragment>
       <main id="main" className="main">
         <div className="pagetitle">
           <nav>
             <ol className="breadcrumb">
               <li className="breadcrumb-item">
-                <Link to="/">Home</Link></li>
-              <li className="breadcrumb-item active">Proforma Invoice</li>
+                <Link to="/">Home</Link>
+              </li>
+              <li className="breadcrumb-item active"> Invoice</li>
             </ol>
           </nav>
         </div>
 
         <section className="section dashboard proforma-section">
           <div className="proforma-container">
-            <h5 className="proforma-title">View Proforma Invoice</h5>
+            <h5 className="proforma-title">View  Invoice</h5>
 
             {/* Table or Empty State */}
             <div className="table-responsive">
-              {proforma.length > 0 ? (
+              {invoice.length > 0 ? (
                 <>
                   <table className="table table-hover proforma-table table-striped table-hover table-bordered">
                     <thead>
@@ -613,7 +591,7 @@ const ProfomaInvoice = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedProforma.map((item, index) => (
+                      {paginatedInvoice.map((item, index) => (
                         <tr key={index}>
                           <td
                             style={{
@@ -634,8 +612,7 @@ const ProfomaInvoice = () => {
                               textAlign: "center",
                             }}
                           >
-
-                              {new Date(item.date).toLocaleDateString("en-GB", {
+                                   {new Date(item.date).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
@@ -656,7 +633,7 @@ const ProfomaInvoice = () => {
                           >
                             <button
                               className="btn btn-sm btn-primary me-2"
-                              onClick={() => searchInvoice(item.invoiceNumber)}
+                             onClick={() => searchInvoice(item.invoiceNumber)}
                             >
                               View
                             </button>
@@ -669,7 +646,7 @@ const ProfomaInvoice = () => {
                   <div className="pagination-container">
                     <Stack spacing={2}>
                       <Pagination
-                        count={Math.ceil(proforma.length / itemsPerPage)}
+                        count={Math.ceil(invoice.length / itemsPerPage)}
                         page={page}
                         onChange={handlepageChange}
                         shape="rounded"
@@ -680,14 +657,14 @@ const ProfomaInvoice = () => {
                 </>
               ) : (
                 <div className="proforma-empty">
-                  <span>No Proforma Invoice Available</span>
+                  <span>No  Invoice Available</span>
                 </div>
               )}
             </div>
           </div>
         </section>
       </main>
-      <Dialog fullScreen open={open} onClose={handleClose}>
+       <Dialog fullScreen open={open} onClose={handleClose}>
         <AppBar sx={{ position: "relative", background: "#1976d2" }}>
           <Toolbar>
             <IconButton
@@ -714,7 +691,7 @@ const ProfomaInvoice = () => {
             <div class="header mt-2">
               <div className="me-4 mt-2">
                 <div className="invoice-title">
-                  <h1>PROFORMA INVOICE </h1>
+                  <h1>INVOICE </h1>
                   <div style={{ color: "#6b7280" }}>
                     <p style={{ margin: "4px 0" }}>
                       <strong>Invoice :</strong> #{invoiceNumber}
@@ -914,6 +891,10 @@ const ProfomaInvoice = () => {
                     <th style={{ ...styles.th, textAlign: "right" }}>
                       Total (₹)
                     </th>
+                      <th style={{ ...styles.th, textAlign: "right" }}>Paid</th>
+                        <th style={{ ...styles.th, textAlign: "right" }}>
+                      Balance
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -978,6 +959,12 @@ const ProfomaInvoice = () => {
                         <td style={{ ...styles.td, textAlign: "right" }}>
                           ₹{serviceCalc.totalWithGst.toFixed(2)}
                         </td>
+                          <td style={{ ...styles.td, textAlign: "right" }}>
+                          ₹{service.paid.toFixed(2)}
+                        </td>
+                        <td style={{ ...styles.td, textAlign: "right" }}>
+                          ₹{balance.toFixed(2)}
+                        </td>
                       </tr>
                     );
                   })}
@@ -1008,6 +995,20 @@ const ProfomaInvoice = () => {
                   <span>Total:</span>
                   <span>₹{totals.total.toFixed(2)}</span>
                 </div>
+                 <div style={{ ...styles.totalRow, color: "#059669" }}>
+                    <span>Total Paid:</span>
+                    <span>₹{totals.totalPaid.toFixed(2)}</span>
+                  </div>
+                  <div
+                    style={{
+                      ...styles.totalRow,
+                      color: "#dc2626",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <span>Balance Due:</span>
+                    <span>₹{totals.balance.toFixed(2)}</span>
+                  </div>
               </div>
             </div>
             <div
@@ -1086,8 +1087,8 @@ const ProfomaInvoice = () => {
                 </div> */}
         </div>
       </Dialog>
-    </Fragment>
-  );
-};
+      </Fragment>
+  )
+}
 
-export default ProfomaInvoice;
+export default Invoice
