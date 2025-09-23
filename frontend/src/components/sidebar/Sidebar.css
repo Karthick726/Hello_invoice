@@ -101,7 +101,7 @@
 
 .sidebar .nav_logo,
 .sidebar .nav_link {
-  display: grid;
+  display: flex;
   grid-template-columns: max-content max-content;
   align-items: center;
   column-gap: 1rem;

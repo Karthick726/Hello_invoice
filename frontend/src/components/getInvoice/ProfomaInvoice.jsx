@@ -121,7 +121,7 @@ const ProfomaInvoice = () => {
   const searchInvoice = async (invoiceNumber) => {
     try {
       const response = await AxiosInstance.post(
-        "/proforma/get-invoice",
+        "/proforma/get-number-invoice",
         { invoiceNumber },
         { withCredentials: true }
       );
@@ -772,7 +772,7 @@ const ProfomaInvoice = () => {
                         {" "}
                         GST Number:
                       </span>{" "}
-                      {info.length > 0 ? info[0].phone || "N/A" : "N/A"}
+                      {info.length > 0 ? info[0].gst || "N/A" : "N/A"}
                     </p>
                   )}
                   <p

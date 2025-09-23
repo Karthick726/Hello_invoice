@@ -574,13 +574,34 @@ const Invoice = () => {
                         >
                           Business Name
                         </th>
-                        {/* <th
+                          <th
                           style={{
                             textAlign: "center",
                           }}
                         >
-                          Service Name
-                        </th> */}
+                         Total Amount
+                        </th>
+                         <th
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                         Paid Amount
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                         Balance Amount
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                         Status
+                        </th>
                         <th
                           style={{
                             textAlign: "center",
@@ -625,7 +646,34 @@ const Invoice = () => {
                           >
                             {item.clientDetails.businessName}
                           </td>
-
+                            <td
+                            style={{
+                              textAlign: "center",
+                            }}
+                          >
+                           ₹ {item.totalAmount.toFixed(2)}
+                          </td>
+                            <td
+                            style={{
+                              textAlign: "center",
+                            }}
+                          >
+                           ₹ {item.totalPaid.toFixed(2)}
+                          </td>
+                          <td
+                            style={{
+                              textAlign: "center",
+                            }}
+                          >
+                           ₹ {item.balanceDue.toFixed(2)}
+                          </td>
+  <td
+                            style={{
+                              textAlign: "center",
+                            }}
+                          >
+                            {item.paymentStatus}
+                          </td>
                           <td
                             style={{
                               textAlign: "center",
@@ -749,7 +797,7 @@ const Invoice = () => {
                         {" "}
                         GST Number:
                       </span>{" "}
-                      {info.length > 0 ? info[0].phone || "N/A" : "N/A"}
+                      {info.length > 0 ? info[0].gst || "N/A" : "N/A"}
                     </p>
                   )}
                   <p

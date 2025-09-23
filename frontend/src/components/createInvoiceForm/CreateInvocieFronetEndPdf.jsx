@@ -1118,10 +1118,14 @@ setServices(
      }
   }catch(err){
     console.log(err)
+    if(err.message && err.response.status===404){
+      alert("This invoice already created")
+      return
+    }
     alert("Invoice Not found")
   }
   }
-  console.log(services)
+ 
 
   const totals = calculateOverallTotals();
 
@@ -1132,6 +1136,9 @@ setServices(
                setInvoiceNumber(InvoiceNumberGenerated) 
     }
   },[invoiceType])
+
+
+  
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -1892,7 +1899,7 @@ setServices(
                       {" "}
                       GST Number:
                     </span>{" "}
-                    {info.length > 0 ? info[0].phone || "N/A" : "N/A"}
+                    {info.length > 0 ? info[0].gst || "N/A" : "N/A"}
                   </p>
                 )}
                 <p

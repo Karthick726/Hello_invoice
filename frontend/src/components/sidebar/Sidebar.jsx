@@ -108,7 +108,7 @@ const Sidebar = () => {
                   className={`nav_link ${isActive("/get-proforma-invoice")}`}
                   onClick={handleLinkClick}
                 >
-                  <i className="bx bx-folder nav_icon"></i>
+                 <i className="bx bx-file nav_icon"></i>
                   <span className="nav_name">Proforma Invoice</span>
                 </Link>
                  <Link
@@ -126,6 +126,22 @@ const Sidebar = () => {
                 >
                   <IoPersonAddOutline className="nav_icon" />
                   <span className="nav_name">Update Info</span>
+                </Link>
+                  <Link
+                  to="/update-proforma-invoice"
+                  className={`nav_link ${isActive("/update-proforma-invoice")}`}
+                  onClick={handleLinkClick}
+                >
+               <i className="bx bx-edit nav_icon"></i>
+                  <span className="nav_name">Update Proforma Invoice </span>
+                </Link>
+                 <Link
+                  to="/update-invoice"
+                  className={`nav_link ${isActive("/update-invoice")}`}
+                  onClick={handleLinkClick}
+                >
+               <i className="bx bx-edit nav_icon"></i>
+                  <span className="nav_name">Balance Due Invoice Update</span>
                 </Link>
                 <hr className="text-danger" />
                 <p className="nav_link sign-out-btn" onClick={handleLogOut}>

@@ -16,6 +16,8 @@ import CompanyInfo from "./components/companyInfo/CompanyInfo";
 import CreateInvoiceFronetEndPdf from "./components/createInvoiceForm/CreateInvocieFronetEndPdf";
 import ProfomaInvoice from "./components/getInvoice/ProfomaInvoice";
 import Invoice from "./components/getInvoice/Invoice";
+import ProformaUpdate from "./components/updateInvoice/ProformaUpdate";
+import InvoiceUpdate from "./components/updateInvoice/InvoiceUpdate";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -70,6 +72,8 @@ function App() {
           <Route index element={<CreateInvoiceFronetEndPdf />} />
           <Route path="/get-proforma-invoice" element={<ProfomaInvoice />} />
           <Route path="/get-invoice" element={<Invoice />} />
+          <Route path="/update-proforma-invoice" element={<ProformaUpdate />} />
+          <Route path="/update-invoice" element={<InvoiceUpdate />} />
           <Route path="/update-info" element={<CompanyInfo />} />
         </Route>
         <Route path="*" element={<h2>404 error</h2>} />

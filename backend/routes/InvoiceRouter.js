@@ -9,6 +9,10 @@ router.post("/post-invoice", auth,Invoice.createInvoice );
 
 router.post("/get-number-invoice", auth,Invoice.getInvoiceByNumber );
 
+router.post("/get-numberby-invoice", auth,Invoice.getInvoiceNumber );
+
+router.post("/update-invoice", auth,Invoice.updateProformaInvoice );
+
 router.get("/get-invoice", auth,Invoice.getInvoice );
 
 

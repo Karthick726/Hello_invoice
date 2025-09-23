@@ -38,7 +38,8 @@ const invoiceSchema = new mongoose.Schema({
   term: [String],
   totalAmount: Number,
   totalPaid: Number,
-  balanceDue: Number
+  balanceDue: Number,
+  paymentStatus:String,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);
