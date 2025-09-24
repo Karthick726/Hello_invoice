@@ -722,35 +722,100 @@ if (!allValid) {
 
  }
 
-  const handleDownload = () => {
-
-
-    const element = invoiceRef.current;
-
-    html2canvas(element).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`Invoice_${invoiceNumber}.pdf`);
-      window.location.reload();
-    });
+      const handleDownload = () => {
+      
+       const element = invoiceRef.current;
+  
+  // Configure html2canvas for better quality
+  const options = {
+    scale: 3, // Higher resolution for better quality
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    height: element.scrollHeight,
+    width: element.scrollWidth,
+    scrollX: 0,
+    scrollY: 0
   };
+
+  html2canvas(element, options).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    
+    // PDF configuration
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const contentWidth = pageWidth - (margin * 2);
+    const contentHeight = pageHeight - (margin * 2);
+    
+    // Calculate scaling to fit width
+    const imgWidth = contentWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let yPosition = margin;
+    let remainingHeight = imgHeight;
+    let sourceY = 0;
+    let isFirstPage = true;
+    
+    while (remainingHeight > 0) {
+      if (!isFirstPage) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      // Calculate how much of the image fits on this page
+      const availableHeight = contentHeight;
+      const heightToAdd = Math.min(remainingHeight, availableHeight);
+      
+      // Create a temporary canvas for this page section
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d');
+      
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = (heightToAdd / imgWidth) * canvas.width;
+      
+      // Draw the portion of the original canvas for this page
+      pageCtx.drawImage(
+        canvas,
+        0, sourceY,
+        canvas.width, pageCanvas.height,
+        0, 0,
+        canvas.width, pageCanvas.height
+      );
+      
+      const pageImgData = pageCanvas.toDataURL("image/png", 1.0);
+      
+      // Add this section to the PDF
+      pdf.addImage(
+        pageImgData,
+        "PNG",
+        margin,
+        yPosition,
+        imgWidth,
+        heightToAdd
+      );
+      
+      // Update for next iteration
+      remainingHeight -= heightToAdd;
+      sourceY += pageCanvas.height;
+      isFirstPage = false;
+    }
+     if(invoiceType ==="invoice"){
+ pdf.save(`Invoice_${customerData.name}.pdf`);
+     }else{
+       pdf.save(`ProformaInvoice_${customerData.name}.pdf`);
+     }
+   
+            window.location.reload();
+          });
+        };
+         
 
   const billedByName =
     info.length > 0 ? info[0].companyName?.trim() || "N/A" : "N/A";
@@ -2111,9 +2176,14 @@ setServices(
                           ₹{service.paid.toFixed(2)}
                         </td>
                       )}
-                      {invoiceType === "invoice" && (
+                      {(invoiceType === "invoice" && balance !==0 ) && (
                         <td style={{ ...styles.td, textAlign: "right" }}>
                           ₹{balance.toFixed(2)}
+                        </td>
+                      )}
+                        {(invoiceType === "invoice" && balance ===0 ) && (
+                        <td style={{ ...styles.td, textAlign: "right" }}>
+                         Fully Paided
                         </td>
                       )}
                     </tr>
@@ -2153,7 +2223,9 @@ setServices(
                     <span>Total Paid:</span>
                     <span>₹{totals.totalPaid.toFixed(2)}</span>
                   </div>
-                  <div
+
+                  {
+                    totals.balance !== 0 && <div
                     style={{
                       ...styles.totalRow,
                       color: "#dc2626",
@@ -2163,6 +2235,20 @@ setServices(
                     <span>Balance Due:</span>
                     <span>₹{totals.balance.toFixed(2)}</span>
                   </div>
+                  }
+                   {
+                    totals.balance === 0 && <div
+                    style={{
+                      ...styles.totalRow,
+                      color: "green",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <span>Payment Status : </span>
+                    <span>Fully Paided</span>
+                  </div>
+                  }
+                  
                 </>
               )}
             </div>

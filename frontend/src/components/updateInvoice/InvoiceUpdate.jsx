@@ -872,30 +872,90 @@ const validatePaidAmount = (service) => {
       };
         const handleDownload = () => {
       
+       const element = invoiceRef.current;
+  
+  // Configure html2canvas for better quality
+  const options = {
+    scale: 3, // Higher resolution for better quality
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    height: element.scrollHeight,
+    width: element.scrollWidth,
+    scrollX: 0,
+    scrollY: 0
+  };
+
+  html2canvas(element, options).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    
+    // PDF configuration
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const contentWidth = pageWidth - (margin * 2);
+    const contentHeight = pageHeight - (margin * 2);
+    
+    // Calculate scaling to fit width
+    const imgWidth = contentWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let yPosition = margin;
+    let remainingHeight = imgHeight;
+    let sourceY = 0;
+    let isFirstPage = true;
+    
+    while (remainingHeight > 0) {
+      if (!isFirstPage) {
+        pdf.addPage();
+        yPosition = margin;
+      }
       
-          const element = invoiceRef.current;
+      // Calculate how much of the image fits on this page
+      const availableHeight = contentHeight;
+      const heightToAdd = Math.min(remainingHeight, availableHeight);
       
-          html2canvas(element).then((canvas) => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 295; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
+      // Create a temporary canvas for this page section
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d');
       
-            let position = 0;
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = (heightToAdd / imgWidth) * canvas.width;
       
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+      // Draw the portion of the original canvas for this page
+      pageCtx.drawImage(
+        canvas,
+        0, sourceY,
+        canvas.width, pageCanvas.height,
+        0, 0,
+        canvas.width, pageCanvas.height
+      );
       
-            while (heightLeft >= 0) {
-              position = heightLeft - imgHeight;
-              pdf.addPage();
-              pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-              heightLeft -= pageHeight;
-            }
+      const pageImgData = pageCanvas.toDataURL("image/png", 1.0);
       
-            pdf.save(`Invoice_${invoiceNumber}.pdf`);
+      // Add this section to the PDF
+      pdf.addImage(
+        pageImgData,
+        "PNG",
+        margin,
+        yPosition,
+        imgWidth,
+        heightToAdd
+      );
+      
+      // Update for next iteration
+      remainingHeight -= heightToAdd;
+      sourceY += pageCanvas.height;
+      isFirstPage = false;
+    }
+    
+    pdf.save(`Invoice_${customerData.name}.pdf`);
             window.location.reload();
           });
         };
@@ -1427,7 +1487,7 @@ if (!allValid) {
                                   ₹{service.alreadyPaid.toFixed(2)}
                                 </td>
                             
-                      <td style={styles.td}>
+                    <td style={styles.td}>
                         <input
                           type="text"
                           value={service.paid}
@@ -1438,6 +1498,8 @@ if (!allValid) {
                               parseFloat(e.target.value) || 0
                             )
                           }
+
+                          
                           style={styles.tableInput}
                           placeholder="0"
                           onKeyDown={(e) => {
@@ -1576,7 +1638,7 @@ if (!allValid) {
                           <div className="invoice-title">
                             <h1>
                             
-                               PROFORMA INVOICE
+                                INVOICE
                             </h1>
                             <div style={{ color: "#6b7280" }}>
                               <p style={{ margin: "4px 0" }}>
@@ -1774,7 +1836,12 @@ if (!allValid) {
                   <th style={{ ...styles.th, textAlign: "right" }}>Already Paid</th>
                  <th style={{ ...styles.th, textAlign: "right" }}>Balance Due Paid</th>
                  <th style={{ ...styles.th, textAlign: "right" }}>Total Paid</th>
-                  <th style={{ ...styles.th, textAlign: "right" }}>Balance</th>
+              
+
+                     <th style={{ ...styles.th, textAlign: "right" }}>
+                      Balance
+                      </th>
+                  
           
                  
                   
@@ -1857,9 +1924,23 @@ if (!allValid) {
                         ₹{serviceCalc.totalPaid.toFixed(2)}
                       </td>
                  
-                      <td style={{ ...styles.td, textAlign: "right" }}>
+                  {
+                    serviceCalc.balance !== 0 &&
+
+                     <td style={{ ...styles.td, textAlign: "right" }}>
                         ₹{serviceCalc.balance.toFixed(2)}
                       </td>
+                  }   
+
+                     {
+                    serviceCalc.balance === 0 &&
+
+                     <td style={{ ...styles.td, textAlign: "right" }}>
+                        
+                        Fully Paided
+                      </td>
+                  }   
+                      
                       
                                 </tr>
                               );
@@ -1898,6 +1979,8 @@ if (!allValid) {
                     <span>Total Paid:</span>
                     <span>₹{totals.totalPaid.toFixed(2)}</span>
                   </div>
+                {
+                  totals.balance !== 0 &&
                   <div
                     style={{
                       ...styles.totalRow,
@@ -1908,6 +1991,21 @@ if (!allValid) {
                     <span>Balance Due:</span>
                     <span>₹{totals.balance.toFixed(2)}</span>
                   </div>
+                }  
+
+                 {
+                  totals.balance === 0 &&
+                  <div
+                    style={{
+                      ...styles.totalRow,
+                      color: "green",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <span>Payment Status:</span>
+                    <span>Fully Paided</span>
+                  </div>
+                }  
                 </>
             
             </div>

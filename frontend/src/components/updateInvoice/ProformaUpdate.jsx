@@ -919,32 +919,92 @@ const ProformaUpdate = () => {
       
         return true;
       };
-        const handleDownload = () => {
+            const handleDownload = () => {
       
+       const element = invoiceRef.current;
+  
+  // Configure html2canvas for better quality
+  const options = {
+    scale: 3, // Higher resolution for better quality
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    height: element.scrollHeight,
+    width: element.scrollWidth,
+    scrollX: 0,
+    scrollY: 0
+  };
+
+  html2canvas(element, options).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png", 1.0);
+    
+    // PDF configuration
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const contentWidth = pageWidth - (margin * 2);
+    const contentHeight = pageHeight - (margin * 2);
+    
+    // Calculate scaling to fit width
+    const imgWidth = contentWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let yPosition = margin;
+    let remainingHeight = imgHeight;
+    let sourceY = 0;
+    let isFirstPage = true;
+    
+    while (remainingHeight > 0) {
+      if (!isFirstPage) {
+        pdf.addPage();
+        yPosition = margin;
+      }
       
-          const element = invoiceRef.current;
+      // Calculate how much of the image fits on this page
+      const availableHeight = contentHeight;
+      const heightToAdd = Math.min(remainingHeight, availableHeight);
       
-          html2canvas(element).then((canvas) => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 295; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
+      // Create a temporary canvas for this page section
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d');
       
-            let position = 0;
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = (heightToAdd / imgWidth) * canvas.width;
       
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+      // Draw the portion of the original canvas for this page
+      pageCtx.drawImage(
+        canvas,
+        0, sourceY,
+        canvas.width, pageCanvas.height,
+        0, 0,
+        canvas.width, pageCanvas.height
+      );
       
-            while (heightLeft >= 0) {
-              position = heightLeft - imgHeight;
-              pdf.addPage();
-              pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-              heightLeft -= pageHeight;
-            }
+      const pageImgData = pageCanvas.toDataURL("image/png", 1.0);
       
-            pdf.save(`Invoice_${invoiceNumber}.pdf`);
+      // Add this section to the PDF
+      pdf.addImage(
+        pageImgData,
+        "PNG",
+        margin,
+        yPosition,
+        imgWidth,
+        heightToAdd
+      );
+      
+      // Update for next iteration
+      remainingHeight -= heightToAdd;
+      sourceY += pageCanvas.height;
+      isFirstPage = false;
+    }
+    
+    pdf.save(`ProformaInvoice_${customerData.name}.pdf`);
             window.location.reload();
           });
         };

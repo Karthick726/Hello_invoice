@@ -1010,9 +1010,21 @@ const Invoice = () => {
                           <td style={{ ...styles.td, textAlign: "right" }}>
                           ₹{service.paid.toFixed(2)}
                         </td>
-                        <td style={{ ...styles.td, textAlign: "right" }}>
+
+                        {
+                          balance !== 0 &&
+                           <td style={{ ...styles.td, textAlign: "right" }}>
                           ₹{balance.toFixed(2)}
                         </td>
+                        }
+
+                           {
+                          balance === 0 &&
+                           <td style={{ ...styles.td, textAlign: "right" }}>
+                        Fully Paided
+                        </td>
+                        }
+                       
                       </tr>
                     );
                   })}
@@ -1047,7 +1059,8 @@ const Invoice = () => {
                     <span>Total Paid:</span>
                     <span>₹{totals.totalPaid.toFixed(2)}</span>
                   </div>
-                  <div
+                { totals.balance !== 0 &&
+                 <div
                     style={{
                       ...styles.totalRow,
                       color: "#dc2626",
@@ -1057,6 +1070,20 @@ const Invoice = () => {
                     <span>Balance Due:</span>
                     <span>₹{totals.balance.toFixed(2)}</span>
                   </div>
+}
+
+{ totals.balance === 0 &&
+                 <div
+                    style={{
+                      ...styles.totalRow,
+                      color: "green",
+                      fontWeight: "600",
+                    }}
+                  >
+                    <span>Payment Status :</span>
+                    <span>Fully Paided </span>
+                  </div>
+}
               </div>
             </div>
             <div
